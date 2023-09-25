@@ -28,7 +28,7 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if DEBUG_ENV == 'True' else False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -130,7 +130,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     f"{FRONTEND_DOMAIN_ENV}",
 ]
-
+CSRF_COOKIE_SECURE = True if DEBUG_ENV == 'False' else False
+SESSION_COOKIE_SECURE = True if DEBUG_ENV == 'False' else False 
+SECURE_SSL_REDIRECT = True if DEBUG_ENV == 'False' else False
 CORS_ALLOW_ALL_ORIGINS = True if DEBUG_ENV == 'True' else False
 
 # Rest Framework Settings
