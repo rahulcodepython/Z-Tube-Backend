@@ -12,6 +12,7 @@ DEBUG_ENV = os.environ.get('DEBUG')
 EMAIL_PORT_ENV = os.environ.get('EMAIL_PORT')
 EMAIL_HOST_USER_ENV = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD_ENV = os.environ.get('EMAIL_HOST_PASSWORD')
+ALLOWED_ORIGINS_1_ENV = os.environ.get('ALLOWED_ORIGINS_1')
 FRONTEND_DOMAIN_ENV = os.environ.get('FRONTEND_DOMAIN')
 FRONTEND_SITE_NAME_ENV = os.environ.get('FRONTEND_SITE_NAME')
 REDIRECT_URIS_ENV = os.environ.get('REDIRECT_URIS')
@@ -128,7 +129,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Corsheaders
 CORS_ALLOWED_ORIGINS = [
-    f"{FRONTEND_DOMAIN_ENV}",
+    ALLOWED_ORIGINS_1_ENV,
 ]
 CSRF_COOKIE_SECURE = True if DEBUG_ENV == 'False' else False
 SESSION_COOKIE_SECURE = True if DEBUG_ENV == 'False' else False 
@@ -167,7 +168,7 @@ DJOSER = {
     'SEND_ACTIVATION_EMAIL': True,
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
     'PASSWORD_RESET_CONFIRM_URL': 'password-reset-confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'users-activation/{uid}/{token}',
+    'ACTIVATION_URL': 'auth/email-verify/{uid}/{token}',
     'TOKEN_MODEL': None,
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [REDIRECT_URIS_ENV],
 }
