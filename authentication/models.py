@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from . import manager as self_manager
-import random
+# import random
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -35,7 +35,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         return self.email
 
-    def save(self) -> None:
-        self.username = self.email.split(
-            '@')[0] + str(random.randint(1000, 9999))
-        return super().save()
+    # def save(self) -> None:
+    #     self.username = self.email.split(
+    #         '@')[0] + str(random.randint(1000, 9999))
+    #     return super().save()

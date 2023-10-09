@@ -1,7 +1,8 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserSerializer, UserCreateSerializer
 from django.contrib.auth import get_user_model
 from djoser.conf import settings
+import random
 
 User = get_user_model()
 
@@ -26,3 +27,12 @@ class CustomUserSerializer(UserSerializer):
             'image',
             settings.LOGIN_FIELD
         )
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    def create(self, validated_data):
+        user = super().create(validated_data)
+        user.username = validated_data['email'].split(
+            '@')[0] + str(random.randint(1000, 9999))
+        user.save()
+        return user

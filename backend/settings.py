@@ -165,7 +165,7 @@ SITE_NAME = FRONTEND_SITE_NAME_ENV
 # Djoser Settings
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_ACTIVATION_EMAIL': False,
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
     'PASSWORD_RESET_CONFIRM_URL': 'password-reset-confirm/{uid}/{token}',
     'ACTIVATION_URL': 'auth/email-verify/{uid}/{token}',
@@ -177,6 +177,8 @@ DJOSER = {
     'SERIALIZERS': {
         'user': 'authentication.serializers.CustomUserSerializer',
         'current_user': 'authentication.serializers.CustomUserSerializer',
+        # 'user_create': 'djoser.serializers.UserCreateSerializer',
+        'user_create': 'authentication.serializers.CustomUserCreateSerializer',
     }
 }
 
