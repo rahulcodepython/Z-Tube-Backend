@@ -7,9 +7,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, max_length=254)
     first_name = models.CharField(max_length=1000, blank=True)
     last_name = models.CharField(max_length=1000, blank=True)
-    username = models.CharField(max_length=1000, blank=True, editable=False)
-    image = models.ImageField(
-        default='defaultUser.png', upload_to='userImage/')
+    username = models.CharField(max_length=1000, blank=True)
     # password .....
 
     is_staff = models.BooleanField(default=True)
@@ -27,8 +25,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
 
     class Meta:
-        verbose_name = 'Custom User'
-        verbose_name_plural = 'Custom Users'
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
         ordering = ['email']
 
     def __str__(self) -> str:

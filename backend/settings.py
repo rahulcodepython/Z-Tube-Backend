@@ -29,7 +29,7 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if DEBUG_ENV == 'True' else False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.29.122']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -165,10 +165,10 @@ SITE_NAME = FRONTEND_SITE_NAME_ENV
 # Djoser Settings
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    'SEND_ACTIVATION_EMAIL': False,
+    'SEND_ACTIVATION_EMAIL': True,
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
     'PASSWORD_RESET_CONFIRM_URL': 'password-reset-confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'auth/email-verify/{uid}/{token}',
+    'ACTIVATION_URL': 'auth/verify/email/{uid}/{token}',
     'TOKEN_MODEL': None,
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [REDIRECT_URIS_ENV],
     'EMAIL': {
