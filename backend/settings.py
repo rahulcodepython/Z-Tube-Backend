@@ -29,7 +29,7 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if DEBUG_ENV == 'True' else False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.29.122']
 
 # Application definition
 INSTALLED_APPS = [
@@ -177,7 +177,6 @@ DJOSER = {
     'SERIALIZERS': {
         'user': 'authentication.serializers.CustomUserSerializer',
         'current_user': 'authentication.serializers.CustomUserSerializer',
-        # 'user_create': 'djoser.serializers.UserCreateSerializer',
         'user_create': 'authentication.serializers.CustomUserCreateSerializer',
     }
 }
