@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
+    path('me/', views.BasicUserDataView.as_view()),
     re_path(r'^auth/o/(?P<provider>\S+)/$',
             views.CustomProviderAuthView.as_view(), name='google-auth-provider'),
 ]
