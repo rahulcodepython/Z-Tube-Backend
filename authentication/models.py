@@ -1,3 +1,4 @@
+import json
 from django.db import models
 from . import manager as self_manager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
@@ -42,10 +43,7 @@ class Profile(models.Model):
     banner = models.ImageField(
         upload_to='bannerImage/', default='defaultBanner.png')
     isVerified = models.BooleanField(default=False)
-    # tags = ArrayField(
-    #     models.CharField(max_length=100, blank=True),
-    #     size=5
-    # )
+    tags = models.CharField(max_length=100, blank=True)
     posts = models.IntegerField(default=0)
     followers = models.IntegerField(default=0)
     followings = models.IntegerField(default=0)
@@ -58,3 +56,9 @@ class Profile(models.Model):
 
     def __str__(self) -> str:
         return self.user.email
+
+    def set_tags(self, tags):
+        self.tags = json.dumps(tags)
+
+    def get_tags(self):
+        return json.loads(self.tags)
