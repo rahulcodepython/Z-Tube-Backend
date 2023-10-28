@@ -1,6 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from . import manager as self_manager
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -31,3 +32,29 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return self.email
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    bio = models.TextField(default='')
+    image = models.ImageField(upload_to='userImage/',
+                              default='defaultUser.png')
+    banner = models.ImageField(
+        upload_to='bannerImage/', default='defaultBanner.png')
+    isVerified = models.BooleanField(default=False)
+    # tags = ArrayField(
+    #     models.CharField(max_length=100, blank=True),
+    #     size=5
+    # )
+    posts = models.IntegerField(default=0)
+    followers = models.IntegerField(default=0)
+    followings = models.IntegerField(default=0)
+    isLocked = models.BooleanField(default=False)
+    Connections = models.ManyToManyField(User, related_name='Connections')
+
+    class Meta:
+        verbose_name = 'Profile'
+        verbose_name_plural = 'Profiles'
+
+    def __str__(self) -> str:
+        return self.user.email
