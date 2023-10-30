@@ -175,9 +175,9 @@ DJOSER = {
         'activation': 'authentication.email.ActivationEmail',
     },
     'SERIALIZERS': {
-        'user': 'authentication.serializers.CustomUserSerializer',
-        'current_user': 'authentication.serializers.CustomUserSerializer',
-        'user_create': 'authentication.serializers.CustomUserCreateSerializer',
+        'user': 'authentication.serializers.UserSerializer',
+        'current_user': 'authentication.serializers.UserSerializer',
+        'user_create': 'authentication.serializers.UserCreateSerializer',
     }
 }
 

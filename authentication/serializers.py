@@ -7,17 +7,16 @@ from . import create_username, models
 User = get_user_model()
 
 
-class CustomUserSerializer(UserSerializer):
+class UserSerializer(UserSerializer):
+    is_superuser = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
-        fields = tuple(User.REQUIRED_FIELDS) + (
-            'username',
-            settings.LOGIN_FIELD,
-        )
+        fields = tuple(User.REQUIRED_FIELDS) + \
+            (settings.LOGIN_FIELD, "is_superuser")
 
 
-class CustomUserCreateSerializer(UserCreateSerializer):
+class UserCreateSerializer(UserCreateSerializer):
     def create(self, validated_data):
         user = super().create(validated_data)
         user.username = create_username.create_username(validated_data['email'].split(
@@ -25,12 +24,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         user.save()
         models.Profile.objects.create(user=user)
         return user
-
-
-class BasicUserDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('first_name', 'last_name', 'username', 'is_superuser')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -50,7 +43,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_user(self, obj):
         user = User.objects.get(email=obj.user.email)
-        return CustomUserSerializer(user).data
+        return UserSerializer(user).data
 
     def update(self, instance, validated_data):
         return super().update(instance, validated_data)

@@ -12,11 +12,11 @@ class CustomProviderAuthView(ProviderAuthView):
         return response
 
 
-class BasicUserDataView(views.APIView):
+class UserDataView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None):
-        serialized_data = serializers.BasicUserDataSerializer(request.user)
+        serialized_data = serializers.UserSerializer(request.user)
         return response.Response(serialized_data.data)
 
 
@@ -46,11 +46,6 @@ class ProfileView(views.APIView):
 
             serialized_data_user.save()
             serialized_data_profile.save()
-
-            if 'user' and 'username' in request.data['user']:
-                user = User.objects.get(email=request.user.email)
-                user.username = request.data['user']['username']
-                user.save()
 
             return response.Response(serialized_data_profile.data)
 
