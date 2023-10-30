@@ -37,7 +37,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    bio = models.TextField(default='')
+    bio = models.TextField(default='', blank=True)
     image = models.ImageField(upload_to='userImage/',
                               default='defaultUser.png')
     banner = models.ImageField(
@@ -48,7 +48,8 @@ class Profile(models.Model):
     followers = models.IntegerField(default=0)
     followings = models.IntegerField(default=0)
     isLocked = models.BooleanField(default=False)
-    Connections = models.ManyToManyField(User, related_name='Connections')
+    Connections = models.ManyToManyField(
+        User, related_name='Connections', blank=True)
 
     class Meta:
         verbose_name = 'Profile'
@@ -56,9 +57,3 @@ class Profile(models.Model):
 
     def __str__(self) -> str:
         return self.user.email
-
-    def set_tags(self, tags):
-        self.tags = json.dumps(tags)
-
-    def get_tags(self):
-        return json.loads(self.tags)

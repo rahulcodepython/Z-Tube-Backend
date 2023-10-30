@@ -2,9 +2,10 @@ from django.urls import path, include, re_path
 from . import views
 
 urlpatterns = [
-    path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.jwt')),
+    path('dj/', include('djoser.urls')),
+    path('token/', include('djoser.urls.jwt')),
     path('me/', views.BasicUserDataView.as_view()),
-    re_path(r'^auth/o/(?P<provider>\S+)/$',
+    path('profile/', views.ProfileView.as_view()),
+    re_path(r'^social/o/(?P<provider>\S+)/$',
             views.CustomProviderAuthView.as_view(), name='google-auth-provider'),
 ]
