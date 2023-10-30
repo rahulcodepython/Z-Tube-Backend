@@ -22,7 +22,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = self_manager.UserManager()
 
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
 
     USERNAME_FIELD = 'email'
 
