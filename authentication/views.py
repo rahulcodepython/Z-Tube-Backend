@@ -18,17 +18,37 @@ class UserDataView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None):
-        serialized_data = serializers.UserSerializer(request.user)
-        return response.Response(serialized_data.data)
+        try:
+            serialized_data = serializers.UserSerializer(request.user)
+            return response.Response(serialized_data.data)
+
+        except Exception as e:
+            return response.Response(f"{e}")
 
 
 class ProfileView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, format=None):
-        serialized_data = serializers.ProfileSerializer(
-            models.Profile.objects.get(user=request.user))
-        return response.Response(serialized_data.data)
+    def get(self, request, username, format=None):
+        try:
+            user = User.objects.get(username=username) if User.objects.filter(
+                username=username).exists() else None
+
+            if user is None:
+                return response.Response({"msg": "No user is found."})
+
+            serialized_data = serializers.ProfileSerializer(
+                models.Profile.objects.get(user=request.user))
+
+            if user is request.user:
+                serialized_data.data['self'] = True
+                return response.Response(serialized_data.data)
+
+            serialized_data.data['self'] = False
+            return response.Response(serialized_data.data)
+
+        except Exception as e:
+            return response.Response(f"{e}")
 
     def patch(self, request, format=None):
         try:
