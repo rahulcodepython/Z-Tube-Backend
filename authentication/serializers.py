@@ -35,10 +35,15 @@ class ProfileSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     banner = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField(read_only=True)
+    posts = serializers.IntegerField(read_only=True)
+    followers = serializers.IntegerField(read_only=True)
+    followings = serializers.IntegerField(read_only=True)
+    isVerified = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = models.Profile
-        fields = ["user", "bio", "image", "banner", "tags", "isLocked"]
+        fields = ["user", "bio", "image", "banner", "tags",
+                  "isLocked", "posts", "followers", "followings", "isVerified"]
 
     def get_image(self, obj):
         if obj.image:
