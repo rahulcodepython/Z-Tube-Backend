@@ -2,7 +2,6 @@ import json
 from django.db import models
 from . import manager as self_manager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -39,9 +38,9 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(default='', blank=True)
     image = models.ImageField(upload_to='userImage/',
-                              default='defaultUser.png')
+                              default='userImage/defaultUser.png')
     banner = models.ImageField(
-        upload_to='bannerImage/', default='defaultBanner.png')
+        upload_to='bannerImage/', default='bannerImage/defaultBanner.png')
     isVerified = models.BooleanField(default=False)
     tags = models.CharField(max_length=100, blank=True)
     posts = models.IntegerField(default=0)
