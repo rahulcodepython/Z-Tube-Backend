@@ -55,6 +55,9 @@ class ProfileView(views.APIView):
             if 'user' and 'email' in request.data['user']:
                 del request.data["user"]["email"]
 
+            if 'user' and 'username' in request.data['user'] and User.objects.filter(username=request.data["user"]["username"]).exists():
+                del request.data["user"]["username"]
+
             serialized_data_user = serializers.UserSerializer(
                 request.user, data=request.data['user'], partial=True)
             serialized_data_profile = serializers.ProfileSerializer(
