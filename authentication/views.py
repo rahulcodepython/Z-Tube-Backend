@@ -1,6 +1,5 @@
 from djoser.social.views import ProviderAuthView
-from rest_framework import permissions
-from rest_framework import views, response
+from rest_framework import views, response, permissions, status
 from . import serializers, models
 from django.contrib.auth import get_user_model
 
@@ -23,32 +22,21 @@ class UserDataView(views.APIView):
             return response.Response(serialized_data.data)
 
         except Exception as e:
-            return response.Response(f"{e}")
+            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProfileView(views.APIView):
+class SelfProfileView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, username, format=None):
+    def get(self, request, format=None):
         try:
-            user = User.objects.get(username=username) if User.objects.filter(
-                username=username).exists() else None
-
-            if user is None:
-                return response.Response({"msg": "No user is found."})
-
             serialized_data = serializers.ProfileSerializer(
                 models.Profile.objects.get(user=request.user))
 
-            if user is request.user:
-                serialized_data.data['self'] = True
-                return response.Response(serialized_data.data)
-
-            serialized_data.data['self'] = False
             return response.Response(serialized_data.data)
 
         except Exception as e:
-            return response.Response(f"{e}")
+            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, format=None):
         try:
@@ -64,10 +52,10 @@ class ProfileView(views.APIView):
                 models.Profile.objects.get(user=request.user), data=request.data, partial=True)
 
             if not serialized_data_user.is_valid():
-                return response.Response('error')
+                return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
 
             if not serialized_data_profile.is_valid():
-                return response.Response('error')
+                return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
 
             serialized_data_user.save()
             serialized_data_profile.save()
@@ -75,4 +63,23 @@ class ProfileView(views.APIView):
             return response.Response(serialized_data_profile.data)
 
         except Exception as e:
-            return response.Response(f"{e}")
+            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileView(views.APIView):
+
+    def get(self, request, username, format=None):
+        try:
+            user = User.objects.get(username=username) if User.objects.filter(
+                username=username).exists() else None
+
+            if user is None:
+                return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
+
+            serialized_data = serializers.ProfileSerializer(
+                models.Profile.objects.get(user=user))
+
+            return response.Response(serialized_data.data)
+
+        except Exception as e:
+            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
