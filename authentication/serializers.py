@@ -35,15 +35,20 @@ class ProfileSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     banner = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField(read_only=True)
-    posts = serializers.IntegerField(read_only=True)
-    followers = serializers.IntegerField(read_only=True)
-    followings = serializers.IntegerField(read_only=True)
-    isVerified = serializers.BooleanField(read_only=True)
+    isFriend = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Profile
         fields = ["user", "bio", "image", "banner", "tags",
-                  "isLocked", "posts", "followers", "followings", "isVerified"]
+                  "isLocked", "posts", "followers", "followings", "isVerified", "isFriend"]
+        read_only_fields = ["posts", "followers", "followings", "isVerified"]
+
+    def get_isFriend(self, obj):
+        if self.context["request"].user.is_authenticated:
+            if self.context["request"].user in obj.Connections.all():
+                return True
+            else:
+                return False
 
     def get_image(self, obj):
         if obj.image:

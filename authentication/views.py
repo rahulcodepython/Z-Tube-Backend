@@ -77,7 +77,7 @@ class ProfileView(views.APIView):
                 return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
 
             serialized_data = serializers.ProfileSerializer(
-                models.Profile.objects.get(user=user))
+                models.Profile.objects.get(user=user), context={'request': request})
 
             return response.Response(serialized_data.data)
 
