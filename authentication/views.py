@@ -31,7 +31,7 @@ class SelfProfileView(views.APIView):
     def get(self, request, format=None):
         try:
             serialized_data = serializers.ProfileSerializer(
-                models.Profile.objects.get(user=request.user))
+                models.Profile.objects.get(user=request.user), context={'request': request})
 
             return response.Response(serialized_data.data)
 
@@ -49,7 +49,7 @@ class SelfProfileView(views.APIView):
             serialized_data_user = serializers.UserSerializer(
                 request.user, data=request.data['user'], partial=True)
             serialized_data_profile = serializers.ProfileSerializer(
-                models.Profile.objects.get(user=request.user), data=request.data, partial=True)
+                models.Profile.objects.get(user=request.user), context={'request': request}, data=request.data, partial=True)
 
             if not serialized_data_user.is_valid():
                 return response.Response('error', status=status.HTTP_400_BAD_REQUEST)

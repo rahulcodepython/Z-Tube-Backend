@@ -44,7 +44,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ["posts", "followers", "followings", "isVerified"]
 
     def get_isFriend(self, obj):
-        if self.context["request"].user.is_authenticated:
+        if self.context["request"] and self.context["request"].user.is_authenticated:
             if self.context["request"].user in obj.Connections.all():
                 return True
             else:
