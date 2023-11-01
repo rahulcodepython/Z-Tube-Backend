@@ -83,3 +83,43 @@ class ProfileView(views.APIView):
 
         except Exception as e:
             return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+
+
+class ConnectView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, username, format=None):
+        try:
+            user = User.objects.get(username=username) if User.objects.filter(
+                username=username).exists() else None
+
+            if user is None:
+                return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
+
+            profile = models.Profile.objects.get(user=user)
+
+            if request.user not in profile.Connections.all():
+                profile.Connections.add(request.user)
+
+            return response.Response("You are now connected.", status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, username, format=None):
+        try:
+            user = User.objects.get(username=username) if User.objects.filter(
+                username=username).exists() else None
+
+            if user is None:
+                return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
+
+            profile = models.Profile.objects.get(user=user)
+
+            if request.user in profile.Connections.all():
+                profile.Connections.remove(request.user)
+
+            return response.Response("You are now disconnected.", status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
