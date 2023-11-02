@@ -34,14 +34,15 @@ class UserCreateSerializer(UserCreateSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     banner = serializers.SerializerMethodField()
-    user = serializers.SerializerMethodField(read_only=True)
+    user = serializers.SerializerMethodField()
     isFriend = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Profile
         fields = ["user", "bio", "image", "banner", "tags",
                   "isLocked", "posts", "followers", "followings", "isVerified", "isFriend"]
-        read_only_fields = ["posts", "followers", "followings", "isVerified"]
+        read_only_fields = ["posts", "followers",
+                            "followings", "isVerified", "user", "isFriend"]
 
     def get_isFriend(self, obj):
         if self.context["request"] and self.context["request"].user.is_authenticated:
