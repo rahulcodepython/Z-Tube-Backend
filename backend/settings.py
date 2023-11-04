@@ -128,13 +128,14 @@ MEDIA_URL = 'media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Corsheaders
-CORS_ALLOWED_ORIGINS = [
-    ALLOWED_ORIGINS_1_ENV,
-]
-CSRF_COOKIE_SECURE = True if DEBUG_ENV == 'False' else False
-SESSION_COOKIE_SECURE = True if DEBUG_ENV == 'False' else False
-SECURE_SSL_REDIRECT = True if DEBUG_ENV == 'False' else False
-CORS_ALLOW_ALL_ORIGINS = True if DEBUG_ENV == 'True' else False
+# CORS_ALLOWED_ORIGINS = [
+#     ALLOWED_ORIGINS_1_ENV,
+# ]
+# CSRF_COOKIE_SECURE = True if DEBUG_ENV == 'False' else False
+# SESSION_COOKIE_SECURE = True if DEBUG_ENV == 'False' else False
+# SECURE_SSL_REDIRECT = True if DEBUG_ENV == 'False' else False
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True if DEBUG_ENV == 'True' else False
 
 # Rest Framework Settings
 REST_FRAMEWORK = {

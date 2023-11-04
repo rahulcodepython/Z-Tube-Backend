@@ -26,7 +26,7 @@ class UserDataView(views.APIView):
 
 
 class SelfProfileView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None):
         try:
@@ -40,27 +40,30 @@ class SelfProfileView(views.APIView):
 
     def patch(self, request, format=None):
         try:
-            if 'user' and 'email' in request.data['user']:
-                del request.data["user"]["email"]
+            # if 'user' and 'email' in request.data['user']:
+            #     del request.data["user"]["email"]
 
-            if 'user' and 'username' in request.data['user'] and User.objects.filter(username=request.data["user"]["username"]).exists():
-                del request.data["user"]["username"]
+            # if 'user' and 'username' in request.data['user'] and User.objects.filter(username=request.data["user"]["username"]).exists():
+            #     del request.data["user"]["username"]
 
-            serialized_data_user = serializers.UserSerializer(
-                request.user, data=request.data['user'], partial=True)
-            serialized_data_profile = serializers.ProfileSerializer(
-                models.Profile.objects.get(user=request.user), context={'request': request}, data=request.data, partial=True)
+            # serialized_data_user = serializers.UserSerializer(
+            #     request.user, data=request.data['user'], partial=True)
+            # serialized_data_profile = serializers.ProfileSerializer(
+            #     models.Profile.objects.get(user=request.user), context={'request': request}, data=request.data, partial=True)
 
-            if not serialized_data_user.is_valid():
-                return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
+            # if not serialized_data_user.is_valid():
+            #     return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
 
-            if not serialized_data_profile.is_valid():
-                return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
+            # if not serialized_data_profile.is_valid():
+            #     return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
 
-            serialized_data_user.save()
-            serialized_data_profile.save()
+            print(request.data)
+            return response.Response("ok")
 
-            return response.Response(serialized_data_profile.data)
+            # serialized_data_user.save()
+            # serialized_data_profile.save()
+
+            # return response.Response(serialized_data_profile.data)
 
         except Exception as e:
             return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
