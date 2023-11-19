@@ -32,8 +32,8 @@ class UserCreateSerializer(UserCreateSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-    banner = serializers.SerializerMethodField()
+    image = serializers.ImageField(required=False)
+    banner = serializers.ImageField(required=False)
     user = serializers.SerializerMethodField()
     isFriend = serializers.SerializerMethodField()
 
@@ -42,7 +42,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ["user", "bio", "image", "banner", "tags",
                   "isLocked", "posts", "followers", "followings", "isVerified", "isFriend"]
         read_only_fields = ["posts", "followers",
-                            "followings", "isVerified", "user", "isFriend", "image", "banner"]
+                            "followings", "isVerified", "user", "isFriend"]
 
     def get_isFriend(self, obj):
         if self.context["request"] and self.context["request"].user.is_authenticated:
@@ -51,19 +51,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             else:
                 return False
 
-    def get_image(self, obj):
-        if obj.image:
-            image_url = f"{BACKEND_DOMAIN_ENV}{obj.image.url}"
-            return image_url
-
-    def get_banner(self, obj):
-        if obj.banner:
-            image_url = f"{BACKEND_DOMAIN_ENV}{obj.banner.url}"
-            return image_url
-
     def get_user(self, obj):
         user = User.objects.get(email=obj.user.email)
         return UserSerializer(user).data
-
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
