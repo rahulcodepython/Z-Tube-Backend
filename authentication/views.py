@@ -40,34 +40,42 @@ class SelfProfileView(views.APIView):
 
     def patch(self, request, format=None):
         try:
-            if 'user' and 'email' in request.data['user']:
-                del request.data["user"]["email"]
-
-            if 'user' and 'username' in request.data['user'] and User.objects.filter(username=request.data["user"]["username"]).exists():
-                del request.data["user"]["username"]
-
-            profile = models.Profile.objects.get(user=request.user)
-            if 'image' in request.data:
-                profile.image = request.data["image"]
-            if 'banner' in request.data:
-                profile.banner = request.data["banner"]
-            profile.save()
-
-            serialized_data_user = serializers.UserSerializer(
-                request.user, data=request.data['user'], partial=True)
-
+            print(request.data)
             serialized_data_profile = serializers.ProfileSerializer(
-                models.Profile.objects.get(user=request.user), context={'request': request}, data=request.data, partial=True)
+                models.Profile.objects.get(user=request.user), data=request.data, partial=True)
 
-            if not serialized_data_user.is_valid() and not serialized_data_profile.is_valid():
-                return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
+            if serialized_data_profile.is_valid():
+                print(serialized_data_profile.data)
 
-            if serialized_data_user.is_valid() and serialized_data_profile.is_valid():
+            return response.Response("hi")
+            # if 'user' and 'email' in request.data['user']:
+            #     del request.data["user"]["email"]
 
-                serialized_data_user.save()
-                serialized_data_profile.save()
+            # if 'user' and 'username' in request.data['user'] and User.objects.filter(username=request.data["user"]["username"]).exists():
+            #     del request.data["user"]["username"]
 
-            return response.Response(serialized_data_profile.data)
+            # profile = models.Profile.objects.get(user=request.user)
+            # if 'image' in request.data:
+            #     profile.image = request.data["image"]
+            # if 'banner' in request.data:
+            #     profile.banner = request.data["banner"]
+            # profile.save()
+
+            # serialized_data_user = serializers.UserSerializer(
+            #     request.user, data=request.data['user'], partial=True)
+
+            # serialized_data_profile = serializers.ProfileSerializer(
+            #     models.Profile.objects.get(user=request.user), context={'request': request}, data=request.data, partial=True)
+
+            # if not serialized_data_user.is_valid() and not serialized_data_profile.is_valid():
+            #     return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
+
+            # if serialized_data_user.is_valid() and serialized_data_profile.is_valid():
+
+            #     serialized_data_user.save()
+            #     serialized_data_profile.save()
+
+            # return response.Response(serialized_data_profile.data)
 
         except Exception as e:
             return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
