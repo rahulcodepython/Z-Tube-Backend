@@ -31,6 +31,26 @@ class UserCreateSerializer(UserCreateSerializer):
         return user
 
 
+class ProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Profile
+        fields = ["image"]
+
+
+class UserDataSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['username', 'is_superuser', 'image']
+
+    def get_image(self, obj):
+        profile = models.Profile.objects.get(
+            user=User.objects.get(email=obj.email))
+        image_data = ProfileImageSerializer(profile)
+        return f"{BACKEND_DOMAIN_ENV}{image_data.data["image"]}"
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(required=False)
     banner = serializers.ImageField(required=False)

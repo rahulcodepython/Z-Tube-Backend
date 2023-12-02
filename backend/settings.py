@@ -131,9 +131,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS_ALLOWED_ORIGINS = [
 #     ALLOWED_ORIGINS_1_ENV,
 # ]
-CSRF_COOKIE_SECURE = True if DEBUG == False else False
-SESSION_COOKIE_SECURE = True if DEBUG == False else False
-SECURE_SSL_REDIRECT = True if DEBUG == False else False
+# CSRF_COOKIE_SECURE = True if DEBUG == False else False
+# SESSION_COOKIE_SECURE = True if DEBUG == False else False
+# SECURE_SSL_REDIRECT = True if DEBUG == False else False
 CORS_ALLOW_ALL_ORIGINS = True if DEBUG == True else False
 
 # Rest Framework Settings

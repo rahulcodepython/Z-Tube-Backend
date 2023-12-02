@@ -18,7 +18,9 @@ class UserDataView(views.APIView):
 
     def get(self, request, format=None):
         try:
-            serialized_data = serializers.UserSerializer(request.user)
+            serialized_data = serializers.UserDataSerializer(
+                User.objects.get(email='rahulcodepython@gmail.com'))
+
             return response.Response(serialized_data.data)
 
         except Exception as e:
