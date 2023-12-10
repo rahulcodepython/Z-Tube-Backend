@@ -39,8 +39,6 @@ class UserDataSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False)
-    banner = serializers.ImageField(required=False)
     user = serializers.SerializerMethodField()
     isFriend = serializers.SerializerMethodField()
 

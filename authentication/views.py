@@ -41,8 +41,6 @@ class SelfProfileView(views.APIView):
 
     def patch(self, request, format=None):
         try:
-            request.data._mutable = True
-
             if 'email' in request.data:
                 del request.data["email"]
 
@@ -60,7 +58,10 @@ class SelfProfileView(views.APIView):
                 serialized_data_user.save()
                 serialized_data_profile.save()
 
-                return response.Response(serialized_data_profile.data)
+                serialized_data_user_basic_data = serializers.UserDataSerializer(
+                    request.user)
+
+                return response.Response({'profile': serialized_data_profile.data, 'user': serialized_data_user_basic_data.data})
 
             return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
 
