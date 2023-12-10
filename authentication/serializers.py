@@ -3,13 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from . import create_username, models
 from djoser.conf import settings
-from dotenv import load_dotenv
-import os
 
 User = get_user_model()
-load_dotenv()
-
-BACKEND_DOMAIN_ENV = os.environ.get('BACKEND_DOMAIN')
 
 
 class UserSerializer(UserSerializer):
@@ -31,12 +26,6 @@ class UserCreateSerializer(UserCreateSerializer):
         return user
 
 
-class ProfileImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Profile
-        fields = ["image"]
-
-
 class UserDataSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
 
@@ -45,10 +34,8 @@ class UserDataSerializer(serializers.ModelSerializer):
         fields = ['username', 'is_superuser', 'image']
 
     def get_image(self, obj):
-        profile = models.Profile.objects.get(
-            user=User.objects.get(email=obj.email))
-        image_data = ProfileImageSerializer(profile)
-        return f"{BACKEND_DOMAIN_ENV}{image_data.data["image"]}"
+        return models.Profile.objects.get(
+            user=User.objects.get(email=obj.email)).image
 
 
 class ProfileSerializer(serializers.ModelSerializer):

@@ -1,4 +1,3 @@
-import json
 from django.db import models
 from . import manager as self_manager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
@@ -34,21 +33,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-def upload_to_user(instance, filename):
-    return 'userImage/{filename}'.format(filename=filename)
-
-
-def upload_to_banner(instance, filename):
-    return 'bannerImage/{filename}'.format(filename=filename)
-
-
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(default='', blank=True)
-    image = models.ImageField(upload_to=upload_to_user,
-                              default='userImage/defaultUser.png')
-    banner = models.ImageField(
-        upload_to=upload_to_banner, default='bannerImage/defaultBanner.png')
+    image = models.CharField(default='', blank=True, max_length=10000)
+    banner = models.CharField(default='', blank=True, max_length=10000)
     isVerified = models.BooleanField(default=False)
     tags = models.CharField(max_length=100, blank=True)
     posts = models.IntegerField(default=0)
