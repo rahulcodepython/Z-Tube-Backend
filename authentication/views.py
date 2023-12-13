@@ -26,6 +26,21 @@ class UserDataView(views.APIView):
             return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
 
 
+class FindUsernameView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, format=None):
+        try:
+            username = request.data['username']
+            if User.objects.filter(username=username).exists():
+                return response.Response({}, status=status.HTTP_403_FORBIDDEN)
+
+            return response.Response({}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+
+
 class SelfProfileView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
