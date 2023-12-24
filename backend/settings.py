@@ -12,12 +12,18 @@ DEBUG_ENV = os.environ.get('DEBUG')
 EMAIL_PORT_ENV = os.environ.get('EMAIL_PORT')
 EMAIL_HOST_USER_ENV = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD_ENV = os.environ.get('EMAIL_HOST_PASSWORD')
-ALLOWED_ORIGINS_1_ENV = os.environ.get('ALLOWED_ORIGINS_1')
+ALLOWED_ORIGINS_ENV = os.environ.get('ALLOWED_ORIGINS')
 FRONTEND_DOMAIN_ENV = os.environ.get('FRONTEND_DOMAIN')
 FRONTEND_SITE_NAME_ENV = os.environ.get('FRONTEND_SITE_NAME')
 REDIRECT_URIS_ENV = os.environ.get('REDIRECT_URIS')
 GOOGLE_AUTH_KEY_ENV = os.environ.get('GOOGLE_AUTH_KEY')
 GOOGLE_AUTH_SECRET_KEY_ENV = os.environ.get('GOOGLE_AUTH_SECRET_KEY')
+DB_ENGINE_ENV = os.environ.get('DB_ENGINE')
+DB_NAME_ENV = os.environ.get('DB_NAME')
+DB_USER_ENV = os.environ.get('DB_USER')
+DB_PASSWORD_ENV = os.environ.get('DB_PASSWORD')
+DB_HOST_ENV = os.environ.get('DB_HOST')
+DB_PORT_ENV = os.environ.get('DB_PORT')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -87,8 +93,14 @@ AUTH_USER_MODEL = 'authentication.User'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': DB_ENGINE_ENV,
+        'NAME': DB_NAME_ENV,
+        'USER': DB_USER_ENV,
+        'PASSWORD': DB_PASSWORD_ENV,
+        'HOST': DB_HOST_ENV,
+        'PORT': DB_PORT_ENV,
     }
 }
 
@@ -128,12 +140,12 @@ MEDIA_URL = 'media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Corsheaders
-# CORS_ALLOWED_ORIGINS = [
-#     ALLOWED_ORIGINS_1_ENV,
-# ]
-# CSRF_COOKIE_SECURE = True if DEBUG == False else False
-# SESSION_COOKIE_SECURE = True if DEBUG == False else False
-# SECURE_SSL_REDIRECT = True if DEBUG == False else False
+CORS_ALLOWED_ORIGINS = [
+    ALLOWED_ORIGINS_ENV,
+]
+CSRF_COOKIE_SECURE = True if DEBUG == False else False
+SESSION_COOKIE_SECURE = True if DEBUG == False else False
+SECURE_SSL_REDIRECT = True if DEBUG == False else False
 CORS_ALLOW_ALL_ORIGINS = True if DEBUG == True else False
 
 # Rest Framework Settings

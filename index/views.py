@@ -1,4 +1,10 @@
-from django.shortcuts import render
+from rest_framework import views, response
 
-def index(request):
-    return render(request, "index.html")
+
+class Home(views.APIView):
+    def get(self, request, format=None):
+        return response.Response({'message': 'Ok'})
+
+    def post(self, request, format=None):
+        print(request.data)
+        return response.Response({'message': 'Ok'})
