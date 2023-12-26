@@ -1,6 +1,7 @@
 from django.db import models
 from . import manager as self_manager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -39,7 +40,8 @@ class Profile(models.Model):
     image = models.CharField(default='', blank=True, max_length=10000)
     banner = models.CharField(default='', blank=True, max_length=10000)
     isVerified = models.BooleanField(default=False)
-    tags = models.CharField(max_length=100, blank=True)
+    tags = ArrayField(models.CharField(
+        max_length=100, blank=True), size=5, blank=True)
     posts = models.IntegerField(default=0)
     followers = models.IntegerField(default=0)
     followings = models.IntegerField(default=0)
