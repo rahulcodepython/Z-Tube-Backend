@@ -7,6 +7,11 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class TestIndex(views.APIView):
+    def get(self, request, format=None):
+        return response.Response({"msg": "Ok! Running..."})
+
+
 class CustomProviderAuthView(ProviderAuthView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)

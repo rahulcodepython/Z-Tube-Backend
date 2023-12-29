@@ -5,7 +5,10 @@ from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True, max_length=254)
+    id = models.BigAutoField(auto_created=True, primary_key=True,
+                             serialize=False, verbose_name='ID', db_index=True)
+    email = models.EmailField(
+        unique=True, max_length=254)
     first_name = models.CharField(max_length=1000, blank=True)
     last_name = models.CharField(max_length=1000, blank=True)
     username = models.CharField(max_length=1000, blank=True)
@@ -35,10 +38,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True)
     bio = models.TextField(default='', blank=True)
-    image = models.CharField(default='', blank=True, max_length=10000)
-    banner = models.CharField(default='', blank=True, max_length=10000)
+    image = models.URLField(default='', blank=True, max_length=10000)
+    banner = models.URLField(default='', blank=True, max_length=10000)
     isVerified = models.BooleanField(default=False)
     tags = ArrayField(models.CharField(
         max_length=100, blank=True), size=5, blank=True)
