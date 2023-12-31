@@ -4,6 +4,8 @@ from . import models
 
 class CreatePostSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
+    tags = serializers.ListField(child=serializers.CharField())
+    media = serializers.ListField(child=serializers.CharField())
 
     class Meta:
         model = models.Post

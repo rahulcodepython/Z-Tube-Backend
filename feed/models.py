@@ -7,7 +7,7 @@ User = get_user_model()
 
 
 class Post(models.Model):
-    id = models.CharField(max_length=200, primary_key=True,
+    id = models.CharField(max_length=1000, primary_key=True,
                           editable=False, db_index=True)
     caption = models.TextField(default="")
     tags = ArrayField(models.CharField(max_length=100), size=3, blank=True)
@@ -42,10 +42,11 @@ class PostConfig(models.Model):
         Post, on_delete=models.CASCADE, primary_key=True, editable=False)
     master = models.ForeignKey(User, on_delete=models.CASCADE)
     createdAt = models.DateTimeField(auto_now_add=True)
-    isPublic = models.BooleanField(default=True)
+    isPublic = models.BooleanField(default=False)
+    isProtected = models.BooleanField(default=False)
     isPersonal = models.BooleanField(default=False)
-    isPrivate = models.BooleanField(default=False)
     isHidden = models.BooleanField(default=False)
+    isPrivate = models.BooleanField(default=False)
     visibleTo = models.ManyToManyField(
         User, related_name='visible_to', blank=True)
     hiddenFrom = models.ManyToManyField(

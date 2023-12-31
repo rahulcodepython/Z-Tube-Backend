@@ -43,19 +43,31 @@ class Profile(models.Model):
     bio = models.TextField(default='', blank=True)
     image = models.URLField(default='', blank=True, max_length=10000)
     banner = models.URLField(default='', blank=True, max_length=10000)
-    isVerified = models.BooleanField(default=False)
     tags = ArrayField(models.CharField(
         max_length=100, blank=True), size=5, blank=True)
     posts = models.IntegerField(default=0)
     followers = models.IntegerField(default=0)
     followings = models.IntegerField(default=0)
-    isLocked = models.BooleanField(default=False)
     Connections = models.ManyToManyField(
         User, related_name='Connections', blank=True)
 
     class Meta:
         verbose_name = 'Profile'
         verbose_name_plural = 'Profiles'
+
+    def __str__(self) -> str:
+        return self.user.email
+
+
+class ProfileConfig(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True)
+    isVerified = models.BooleanField(default=False)
+    isLocked = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Profile Configuration'
+        verbose_name_plural = 'Profile Configurations'
 
     def __str__(self) -> str:
         return self.user.email

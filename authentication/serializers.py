@@ -23,6 +23,7 @@ class UserCreateSerializer(UserCreateSerializer):
             '@')[0])
         user.save()
         models.Profile.objects.create(user=user)
+        models.ProfileConfig.objects.create(user=user)
         return user
 
 
@@ -39,23 +40,18 @@ class UserDataSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
-    isFriend = serializers.SerializerMethodField()
+    image = serializers.URLField()
+    banner = serializers.URLField()
 
     class Meta:
         model = models.Profile
-        fields = ["user", "bio", "image", "banner", "tags",
-                  "isLocked", "posts", "followers", "followings", "isVerified", "isFriend"]
-        read_only_fields = ["posts", "followers",
-                            "followings", "isVerified", "user", "isFriend"]
+        fields = ["bio", "image", "banner", "tags",
+                  "posts", "followers", "followings"]
+        read_only_fields = ["posts", "followers", "followings"]
 
-    def get_isFriend(self, obj):
-        if self.context["request"] and self.context["request"].user.is_authenticated:
-            if self.context["request"].user in obj.Connections.all():
-                return True
-            else:
-                return False
 
-    def get_user(self, obj):
-        user = User.objects.get(email=obj.user.email)
-        return UserSerializer(user).data
+class ProfileConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProfileConfig
+        fields = ["isLocked", "isVerified"]
+        read_only_fields = ["isVerified"]
