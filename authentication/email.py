@@ -6,7 +6,7 @@ from djoser.conf import settings
 
 
 class ActivationEmail(BaseEmailMessage):
-    template_name = "email/activation.html"
+    template_name = "activation.html"
 
     def get_context_data(self):
         context = super().get_context_data()

@@ -5,7 +5,10 @@ from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True, max_length=254)
+    id = models.BigAutoField(auto_created=True, primary_key=True,
+                             serialize=False, verbose_name='ID', db_index=True)
+    email = models.EmailField(
+        unique=True, max_length=254)
     first_name = models.CharField(max_length=1000, blank=True)
     last_name = models.CharField(max_length=1000, blank=True)
     username = models.CharField(max_length=1000, blank=True)
@@ -35,23 +38,36 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True)
     bio = models.TextField(default='', blank=True)
-    image = models.CharField(default='', blank=True, max_length=10000)
-    banner = models.CharField(default='', blank=True, max_length=10000)
-    isVerified = models.BooleanField(default=False)
+    image = models.URLField(default='', blank=True, max_length=10000)
+    banner = models.URLField(default='', blank=True, max_length=10000)
     tags = ArrayField(models.CharField(
         max_length=100, blank=True), size=5, blank=True)
     posts = models.IntegerField(default=0)
     followers = models.IntegerField(default=0)
     followings = models.IntegerField(default=0)
-    isLocked = models.BooleanField(default=False)
     Connections = models.ManyToManyField(
         User, related_name='Connections', blank=True)
 
     class Meta:
         verbose_name = 'Profile'
         verbose_name_plural = 'Profiles'
+
+    def __str__(self) -> str:
+        return self.user.email
+
+
+class ProfileConfig(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True)
+    isVerified = models.BooleanField(default=False)
+    isLocked = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Profile Configuration'
+        verbose_name_plural = 'Profile Configurations'
 
     def __str__(self) -> str:
         return self.user.email
