@@ -3,7 +3,8 @@
 /media
 .idea
 /static
-/authentication/migrations
+/authentication/migrations/__pycache__
 /authentication/__pycache__
-/feed/migrations
+/feed/migrations/__pycache__
 /feed/__pycache__
+db.sqlite3

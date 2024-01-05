@@ -94,14 +94,14 @@ AUTH_USER_MODEL = 'authentication.User'
 # Database
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-        'ENGINE': DB_ENGINE_ENV,
-        'NAME': DB_NAME_ENV,
-        'USER': DB_USER_ENV,
-        'PASSWORD': DB_PASSWORD_ENV,
-        'HOST': DB_HOST_ENV,
-        'PORT': DB_PORT_ENV,
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': DB_ENGINE_ENV,
+        # 'NAME': DB_NAME_ENV,
+        # 'USER': DB_USER_ENV,
+        # 'PASSWORD': DB_PASSWORD_ENV,
+        # 'HOST': DB_HOST_ENV,
+        # 'PORT': DB_PORT_ENV,
     }
 }
 
