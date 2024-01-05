@@ -35,7 +35,7 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if DEBUG_ENV == 'True' else False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 INSTALLED_APPS = [
@@ -131,10 +131,9 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_DIR = BASE_DIR / 'static'
-MEDIA_DIR = BASE_DIR / 'media'
-MEDIA_ROOT = MEDIA_DIR
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'static'
+MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = 'media/'
 
 # Default primary key field type

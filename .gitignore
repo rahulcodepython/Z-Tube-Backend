@@ -2,3 +2,9 @@
 .env
 /media
 .idea
+/static
+/authentication/migrations
+/authentication/__pycache__
+/backend/__pycache__
+/feed/migrations
+/feed/__pycache__
