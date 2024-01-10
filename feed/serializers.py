@@ -2,7 +2,7 @@ from rest_framework import serializers
 from . import models
 
 
-class CreatePostSerializer(serializers.ModelSerializer):
+class PostSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
     tags = serializers.ListField(child=serializers.CharField())
     media = serializers.ListField(child=serializers.CharField())
@@ -12,8 +12,9 @@ class CreatePostSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CreatePostConfigSerializer(serializers.ModelSerializer):
+class PostConfigSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
+    master = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = models.PostConfig
