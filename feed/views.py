@@ -12,12 +12,10 @@ POST_VISIBILITY_TYPE = [
 
 
 class CreatePostView(views.APIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, format=None):
         try:
-            user = User.objects.get(email="rahulcodepython@gmail.com")
-
             serialized_post = serializers.PostSerializer(
                 data=request.data)
 
@@ -27,7 +25,7 @@ class CreatePostView(views.APIView):
             serialized_post.save()
 
             postConfig = models.PostConfig.objects.create(
-                id=models.Post.objects.get(id=serialized_post.data['id']), master=user)
+                id=models.Post.objects.get(id=serialized_post.data['id']), master=request.user)
 
             if (request.data['visibility']['type'] in POST_VISIBILITY_TYPE and request.data['visibility']['type'] == 'public'):
                 postConfig.isPublic = True
@@ -39,13 +37,13 @@ class CreatePostView(views.APIView):
                 postConfig.isPrivate = True
                 postConfig.save()
 
-            if models.PostRecord.objects.filter(user=user).exists():
-                record = models.PostRecord.objects.get(user=user)
+            if models.PostRecord.objects.filter(user=request.user).exists():
+                record = models.PostRecord.objects.get(user=request.user)
                 record.posts.add(models.Post.objects.get(
                     id=serialized_post.data['id']))
                 record.save()
             else:
-                record = models.PostRecord.objects.create(user=user)
+                record = models.PostRecord.objects.create(user=request.user)
                 record.posts.add(models.Post.objects.get(
                     id=serialized_post.data['id']))
                 record.save()
@@ -60,14 +58,12 @@ class CreatePostView(views.APIView):
 
 
 class ViewPostView(views.APIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None):
         try:
-            user = User.objects.get(email="rahulcodepython@gmail.com")
-
-            if models.PostRecord.objects.filter(user=user).exists():
-                postRecord = models.PostRecord.objects.get(user=user)
+            if models.PostRecord.objects.filter(user=request.user).exists():
+                postRecord = models.PostRecord.objects.get(user=request.user)
                 posts = postRecord.posts.all()
 
                 postsList = []
@@ -76,8 +72,6 @@ class ViewPostView(views.APIView):
                     serialized_post = serializers.PostSerializer(post)
                     serialized_post_config = serializers.PostConfigSerializer(
                         models.PostConfig.objects.get(id=post.id))
-                    postsList.append(
-                        {**serialized_post_config.data})
                     postsList.append(
                         {**serialized_post.data, **serialized_post_config.data})
 

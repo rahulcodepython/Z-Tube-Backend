@@ -11,7 +11,7 @@ class Post(models.Model):
                           editable=False, db_index=True)
     caption = models.TextField(default="")
     tags = ArrayField(models.CharField(max_length=100), size=3, blank=True)
-    media = ArrayField(models.CharField(max_length=100))
+    media = ArrayField(models.CharField(max_length=5000))
 
     class Meta:
         verbose_name = 'Post'
