@@ -51,9 +51,8 @@ class PostConfig(models.Model):
         User, related_name='visible_to', blank=True)
     hiddenFrom = models.ManyToManyField(
         User, related_name='hidden_from', blank=True)
-    like = models.IntegerField(default=0)
-    dislike = models.IntegerField(default=0)
-    views = models.IntegerField(default=0)
+    likeNo = models.IntegerField(default=0)
+    viewsNo = models.IntegerField(default=0)
     share = models.IntegerField(default=0)
     allowComments = models.BooleanField(default=True)
     commentNo = models.IntegerField(default=0)

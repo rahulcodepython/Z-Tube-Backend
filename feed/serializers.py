@@ -18,4 +18,4 @@ class PostConfigSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.PostConfig
-        fields = '__all__'
+        exclude = ['visibleTo', 'hiddenFrom']
