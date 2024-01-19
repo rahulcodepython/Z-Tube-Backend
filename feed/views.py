@@ -25,7 +25,7 @@ class CreatePostView(views.APIView):
             serialized_post.save()
 
             postConfig = models.PostConfig.objects.create(
-                id=models.Post.objects.get(id=serialized_post.data['id']), master=request.user)
+                id=models.Post.objects.get(id=serialized_post.data['id']), master=request.user, createdAt=request.data['createdAt'])
 
             if (request.data['visibility']['type'] in POST_VISIBILITY_TYPE and request.data['visibility']['type'] == 'public'):
                 postConfig.isPublic = True

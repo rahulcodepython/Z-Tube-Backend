@@ -41,7 +41,7 @@ class PostConfig(models.Model):
     id = models.OneToOneField(
         Post, on_delete=models.CASCADE, primary_key=True, editable=False)
     master = models.ForeignKey(User, on_delete=models.CASCADE)
-    createdAt = models.DateTimeField(auto_now_add=True)
+    createdAt = models.CharField(max_length=500)
     isPublic = models.BooleanField(default=False)
     isProtected = models.BooleanField(default=False)
     isPersonal = models.BooleanField(default=False)
