@@ -14,7 +14,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostConfigSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
-    master = serializers.StringRelatedField(read_only=True)
+    # master = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = models.PostConfig

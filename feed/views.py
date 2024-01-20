@@ -25,7 +25,7 @@ class CreatePostView(views.APIView):
             serialized_post.save()
 
             postConfig = models.PostConfig.objects.create(
-                id=models.Post.objects.get(id=serialized_post.data['id']), master=request.user, createdAt=request.data['createdAt'])
+                id=models.Post.objects.get(id=serialized_post.data['id']), createdAt=request.data['createdAt'])
 
             if (request.data['visibility']['type'] in POST_VISIBILITY_TYPE and request.data['visibility']['type'] == 'public'):
                 postConfig.isPublic = True
@@ -60,10 +60,16 @@ class CreatePostView(views.APIView):
 class ViewPostView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, format=None):
+    def get(self, request, username, format=None):
         try:
-            if models.PostRecord.objects.filter(user=request.user).exists():
-                postRecord = models.PostRecord.objects.get(user=request.user)
+            user = User.objects.get(username=username) if User.objects.filter(
+                username=username).exists() else None
+
+            if user is None:
+                return response.Response({"msg": "No such user."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            if models.PostRecord.objects.filter(user=user).exists():
+                postRecord = models.PostRecord.objects.get(user=user)
                 posts = postRecord.posts.all()
 
                 postsList = []
@@ -73,10 +79,9 @@ class ViewPostView(views.APIView):
                     serialized_post_config = serializers.PostConfigSerializer(
                         models.PostConfig.objects.get(id=post.id))
                     postsList.append(
-                        {**serialized_post.data, **serialized_post_config.data})
+                        {**serialized_post.data, **serialized_post_config.data, **{"self": True if request.user == user else False}})
 
-                return response.Response(postsList,
-                                         status=status.HTTP_200_OK)
+                return response.Response(postsList, status=status.HTTP_200_OK)
             else:
                 return response.Response({"msg": "No Post Here"},
                                          status=status.HTTP_204_NO_CONTENT)

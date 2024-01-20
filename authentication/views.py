@@ -46,20 +46,37 @@ class FindUsernameView(views.APIView):
             return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
 
 
-class SelfProfileView(views.APIView):
+class ProfileView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, format=None):
+    def get(self, request, username, format=None):
         try:
-            serialized_data_user = serializers.UserSerializer(request.user)
+            user = User.objects.get(username=username) if User.objects.filter(
+                username=username).exists() else None
+
+            if user is None:
+                return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
 
             serialized_data_profile = serializers.ProfileSerializer(
-                models.Profile.objects.get(user=request.user))
+                models.Profile.objects.get(user=user))
+
+            serialized_data_user = serializers.UserSerializer(user)
 
             serialized_data_profileconfig = serializers.ProfileConfigSerializer(
-                models.ProfileConfig.objects.get(user=request.user))
+                models.ProfileConfig.objects.get(user=user))
 
-            return response.Response({**serialized_data_user.data, **serialized_data_profile.data, **serialized_data_profileconfig.data, "isFriend": False}, status=status.HTTP_200_OK)
+            return response.Response(
+                {
+                    **serialized_data_user.data,
+                    **serialized_data_profile.data,
+                    **serialized_data_profileconfig.data,
+                    **{
+                        "isFriend": True if request.user in models.Profile.objects.get(
+                            user=user).Connections.all() else False,
+                        "self": True if request.user == user else False
+                    }
+                },
+                status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
@@ -91,41 +108,19 @@ class SelfProfileView(views.APIView):
                     request.user)
 
                 return response.Response({
-                    "profile": {**serialized_data_profile.data, **serialized_data_user.data, **serialized_data_profileconfig.data, "isFriend": False},
+                    "profile": {
+                        **serialized_data_profile.data,
+                        **serialized_data_user.data,
+                        **serialized_data_profileconfig.data,
+                        **{
+                            "isFriend": False,
+                            "self": True
+                        }
+                    },
                     "user": serialized_data_user_basic_data.data
                 }, status=status.HTTP_202_ACCEPTED)
 
             return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
-
-
-class ProfileView(views.APIView):
-
-    def get(self, request, username, format=None):
-        try:
-            user = User.objects.get(username=username) if User.objects.filter(
-                username=username).exists() else None
-
-            if user is None:
-                return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
-
-            serialized_data_profile = serializers.ProfileSerializer(
-                models.Profile.objects.get(user=user))
-
-            serialized_data_user = serializers.UserSerializer(user)
-
-            serialized_data_profileconfig = serializers.ProfileConfigSerializer(
-                models.ProfileConfig.objects.get(user=user))
-
-            isFriend = False
-            if request.user.is_authenticated and request.user in models.Profile.objects.get(user=user).Connections.all():
-                isFriend = True
-            else:
-                isFriend = False
-
-            return response.Response({**serialized_data_user.data, **serialized_data_profile.data, **serialized_data_profileconfig.data, "isFriend": isFriend}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)

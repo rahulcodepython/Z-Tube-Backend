@@ -40,7 +40,7 @@ REACTION_CHOICE = [
 class PostConfig(models.Model):
     id = models.OneToOneField(
         Post, on_delete=models.CASCADE, primary_key=True, editable=False)
-    master = models.ForeignKey(User, on_delete=models.CASCADE)
+    # master = models.ForeignKey(User, on_delete=models.CASCADE)
     createdAt = models.CharField(max_length=500)
     isPublic = models.BooleanField(default=False)
     isProtected = models.BooleanField(default=False)
@@ -72,3 +72,32 @@ class PostRecord(models.Model):
     class Meta:
         verbose_name = 'Post Record'
         verbose_name_plural = 'Post Records'
+
+
+class Comment(models.Model):
+    id = models.CharField(max_length=1000, primary_key=True,
+                          editable=False, db_index=True)
+    master = models.ForeignKey(
+        "self", on_delete=models.CASCADE, related_name="+", null=True, blank=True)
+    uploader = models.ForeignKey(
+        User, on_delete=models.SET_DEFAULT, default=None, null=True)
+    comment = models.TextField()
+    created = models.CharField(max_length=500)
+
+    class Meta:
+        verbose_name = 'Comment'
+        verbose_name_plural = 'Comments'
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = uuid.uuid4()
+            return super().save(*args, **kwargs)
+
+
+class CommentRecord(models.Model):
+    post = models.OneToOneField(Post, on_delete=models.CASCADE)
+    comments = models.ManyToManyField(Comment)
+
+    class Meta:
+        verbose_name = 'Comment Record'
+        verbose_name_plural = 'Comment Records'
