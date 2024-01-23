@@ -14,8 +14,17 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostConfigSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
-    # master = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = models.PostConfig
         exclude = ['visibleTo', 'hiddenFrom']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    id = serializers.StringRelatedField(read_only=True)
+    master = serializers.StringRelatedField(read_only=True)
+    uploader = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = models.Comment
+        fields = '__all__'

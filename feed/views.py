@@ -1,6 +1,7 @@
 from rest_framework import views, response, status, permissions
 from . import models, serializers
 from django.contrib.auth import get_user_model
+import uuid
 
 User = get_user_model()
 
@@ -57,7 +58,7 @@ class CreatePostView(views.APIView):
             return response.Response({"msg": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ViewPostView(views.APIView):
+class ViewUserAllPostsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, username, format=None):
@@ -88,3 +89,47 @@ class ViewPostView(views.APIView):
 
         except Exception as e:
             return response.Response({"msg": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreateCommentView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, postid, format=None):
+        try:
+            post = models.Post.objects.get(id=postid) if models.Post.objects.filter(
+                id=postid).exists() else None
+
+            if post is None:
+                return response.Response({'msg': 'Invalid post id.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            postConfig = models.PostConfig.objects.get(id=post)
+
+            if postConfig.allowComments == False:
+                return response.Response({'msg': "Comments are not allowed to the post"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            comment_id = f"{postid}+{uuid.uuid4()}"
+            master = models.Comment.objects.get(id=request.data['master']) if 'master' in request.data and models.Comment.objects.filter(
+                id=request.data['master']).exists() else None
+
+            comment = models.Comment.objects.create(
+                id=comment_id, master=master, uploader=request.user, comment=request.data['comment'], createdAt=request.data['createdAt'])
+
+            postConfig.commentNo += 1
+            postConfig.save()
+
+            if models.CommentRecord.objects.filter(post=post).exists():
+                commentRecord = models.CommentRecord.objects.get(post=post)
+                commentRecord.comments.add(comment)
+                commentRecord.save()
+
+            else:
+                commentRecord = models.CommentRecord.objects.create(post=post)
+                commentRecord.comments.add(comment)
+                commentRecord.save()
+
+            comment_serialized = serializers.CommentSerializer(comment)
+
+            return response.Response(comment_serialized.data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return response.Response({"msg": f"{e}"}, status=status.HTTP_406_NOT_ACCEPTABLE)

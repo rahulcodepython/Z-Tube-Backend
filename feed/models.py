@@ -82,16 +82,14 @@ class Comment(models.Model):
     uploader = models.ForeignKey(
         User, on_delete=models.SET_DEFAULT, default=None, null=True)
     comment = models.TextField()
-    created = models.CharField(max_length=500)
+    createdAt = models.CharField(max_length=500)
 
     class Meta:
         verbose_name = 'Comment'
         verbose_name_plural = 'Comments'
 
-    def save(self, *args, **kwargs):
-        if not self.id:
-            self.id = uuid.uuid4()
-            return super().save(*args, **kwargs)
+    def __str__(self) -> str:
+        return f"{self.id}"
 
 
 class CommentRecord(models.Model):
@@ -101,3 +99,33 @@ class CommentRecord(models.Model):
     class Meta:
         verbose_name = 'Comment Record'
         verbose_name_plural = 'Comment Records'
+
+
+class PostReaction(models.Model):
+    post = models.OneToOneField(Post, on_delete=models.CASCADE)
+    like = models.ManyToManyField(User, related_name="like_post")
+    heart = models.ManyToManyField(User, related_name="heart_post")
+    care = models.ManyToManyField(User, related_name="care_post")
+    laugh = models.ManyToManyField(User, related_name="laugh_post")
+    wow = models.ManyToManyField(User, related_name="wow_post")
+    cry = models.ManyToManyField(User, related_name="cry_post")
+    angry = models.ManyToManyField(User, related_name="angry_post")
+
+    class Meta:
+        verbose_name = 'Post Reaction'
+        verbose_name_plural = 'Post Reactions'
+
+
+class CommentReaction(models.Model):
+    comment = models.OneToOneField(Comment, on_delete=models.CASCADE)
+    like = models.ManyToManyField(User, related_name="like_comment")
+    heart = models.ManyToManyField(User, related_name="heart_comment")
+    care = models.ManyToManyField(User, related_name="care_comment")
+    laugh = models.ManyToManyField(User, related_name="laugh_comment")
+    wow = models.ManyToManyField(User, related_name="wow_comment")
+    cry = models.ManyToManyField(User, related_name="cry_comment")
+    angry = models.ManyToManyField(User, related_name="angry_comment")
+
+    class Meta:
+        verbose_name = 'Comment Reaction'
+        verbose_name_plural = 'Comment Reactions'
