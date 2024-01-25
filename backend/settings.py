@@ -35,7 +35,7 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if DEBUG_ENV == 'True' else False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.29.122']
 
 # Application definition
 INSTALLED_APPS = [

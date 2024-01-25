@@ -2,6 +2,7 @@ from rest_framework import views, response, status, permissions
 from . import models, serializers
 from django.contrib.auth import get_user_model
 import uuid
+from authentication import models as auth_model
 
 User = get_user_model()
 
@@ -133,3 +134,32 @@ class CreateCommentView(views.APIView):
 
         except Exception as e:
             return response.Response({"msg": f"{e}"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
+class ViewCommentView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, postid, format=None):
+        try:
+            post = models.Post.objects.get(id=postid) if models.Post.objects.filter(
+                id=postid).exists() else None
+
+            if post is None:
+                return response.Response({"msg": "There is no such post."}, status=status.HTTP_400_BAD_REQUEST)
+
+            comment_record = models.CommentRecord.objects.get(
+                post=post) if models.CommentRecord.objects.filter(post=post).exists() else None
+
+            if comment_record is None:
+                return response.Response([], status=status.HTTP_200_OK)
+
+            commentList = []
+
+            for c in comment_record.comments.all():
+                serialized = serializers.CommentSerializer(c)
+                commentList.append(serialized.data)
+
+            return response.Response(commentList, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
