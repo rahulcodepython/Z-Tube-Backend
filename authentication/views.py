@@ -28,7 +28,7 @@ class UserDataView(views.APIView):
             return response.Response(serialized_data.data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FindUsernameView(views.APIView):
@@ -38,12 +38,12 @@ class FindUsernameView(views.APIView):
         try:
             username = request.data['username']
             if User.objects.filter(username=username).exists():
-                return response.Response({}, status=status.HTTP_403_FORBIDDEN)
+                return response.Response({"error": "This username is already taken."}, status=status.HTTP_403_FORBIDDEN)
 
             return response.Response({}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProfileView(views.APIView):
@@ -55,7 +55,7 @@ class ProfileView(views.APIView):
                 username=username).exists() else None
 
             if user is None:
-                return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"error": "No user found."}, status=status.HTTP_400_BAD_REQUEST)
 
             serialized_data_profile = serializers.ProfileSerializer(
                 models.Profile.objects.get(user=user))
@@ -79,7 +79,7 @@ class ProfileView(views.APIView):
                 status=status.HTTP_200_OK)
 
         except Exception as e:
-            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, format=None):
         try:
@@ -120,10 +120,10 @@ class ProfileView(views.APIView):
                     "user": serialized_data_user_basic_data.data
                 }, status=status.HTTP_202_ACCEPTED)
 
-            return response.Response('error', status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": "Data is not valid."}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ConnectView(views.APIView):
@@ -135,17 +135,17 @@ class ConnectView(views.APIView):
                 username=username).exists() else None
 
             if user is None:
-                return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"error": "No user found"}, status=status.HTTP_400_BAD_REQUEST)
 
             profile = models.Profile.objects.get(user=user)
 
             if request.user not in profile.Connections.all():
                 profile.Connections.add(request.user)
 
-            return response.Response("You are now connected.", status=status.HTTP_202_ACCEPTED)
+            return response.Response({"msg": "You are now connected."}, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
-            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, username, format=None):
         try:
@@ -153,14 +153,14 @@ class ConnectView(views.APIView):
                 username=username).exists() else None
 
             if user is None:
-                return response.Response("No user found", status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"error": "No user found"}, status=status.HTTP_400_BAD_REQUEST)
 
             profile = models.Profile.objects.get(user=user)
 
             if request.user in profile.Connections.all():
                 profile.Connections.remove(request.user)
 
-            return response.Response("You are now disconnected.", status=status.HTTP_202_ACCEPTED)
+            return response.Response({"msg": "You are now disconnected."}, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
-            return response.Response(f"{e}", status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)

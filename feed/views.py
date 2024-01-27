@@ -2,7 +2,6 @@ from rest_framework import views, response, status, permissions
 from . import models, serializers
 from django.contrib.auth import get_user_model
 import uuid
-from authentication import models as auth_model
 
 User = get_user_model()
 
@@ -22,7 +21,7 @@ class CreatePostView(views.APIView):
                 data=request.data)
 
             if not serialized_post.is_valid():
-                return response.Response({"msg": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"error": "Your data is not valid."}, status=status.HTTP_400_BAD_REQUEST)
 
             serialized_post.save()
 
@@ -56,7 +55,7 @@ class CreatePostView(views.APIView):
             return response.Response({**serialized_post.data, **serialized_post_config.data}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return response.Response({"msg": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ViewUserAllPostsView(views.APIView):
@@ -68,7 +67,7 @@ class ViewUserAllPostsView(views.APIView):
                 username=username).exists() else None
 
             if user is None:
-                return response.Response({"msg": "No such user."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                return response.Response({"error": "No such user."}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
             if models.PostRecord.objects.filter(user=user).exists():
                 postRecord = models.PostRecord.objects.get(user=user)
@@ -85,11 +84,11 @@ class ViewUserAllPostsView(views.APIView):
 
                 return response.Response(postsList, status=status.HTTP_200_OK)
             else:
-                return response.Response({"msg": "No Post Here"},
+                return response.Response({"error": "No Post Here"},
                                          status=status.HTTP_204_NO_CONTENT)
 
         except Exception as e:
-            return response.Response({"msg": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CreateCommentView(views.APIView):
@@ -130,10 +129,13 @@ class CreateCommentView(views.APIView):
 
             comment_serialized = serializers.CommentSerializer(comment)
 
-            return response.Response(comment_serialized.data, status=status.HTTP_201_CREATED)
+            return response.Response({
+                "comment": comment_serialized.data,
+                "commentNo": postConfig.commentNo
+            }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return response.Response({"msg": f"{e}"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            return response.Response({"error": f"{e}"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class ViewCommentView(views.APIView):
@@ -145,7 +147,7 @@ class ViewCommentView(views.APIView):
                 id=postid).exists() else None
 
             if post is None:
-                return response.Response({"msg": "There is no such post."}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"error": "There is no such post."}, status=status.HTTP_400_BAD_REQUEST)
 
             comment_record = models.CommentRecord.objects.get(
                 post=post) if models.CommentRecord.objects.filter(post=post).exists() else None
@@ -160,6 +162,76 @@ class ViewCommentView(views.APIView):
                 commentList.append(serialized.data)
 
             return response.Response(commentList, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AddPostReactionView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, postid, reaction, format=None):
+        try:
+            post = models.Post.objects.get(id=postid) if models.Post.objects.filter(
+                id=postid).exists() else None
+
+            if post is None:
+                return response.Response({"error": "No Such Post is there."}, status=status.HTTP_400_BAD_REQUEST)
+
+            reaction_record = models.PostReaction.objects.get(post=post) if models.PostReaction.objects.filter(
+                post=post).exists() else models.PostReaction.objects.create(post=post)
+
+            if reaction == "like":
+                reaction_record.like.add(request.user)
+            elif reaction == "heart":
+                reaction_record.heart.add(request.user)
+            elif reaction == "care":
+                reaction_record.care.add(request.user)
+            elif reaction == "laugh":
+                reaction_record.laugh.add(request.user)
+            elif reaction == "wow":
+                reaction_record.wow.add(request.user)
+            elif reaction == "angry":
+                reaction_record.angry.add(request.user)
+
+            post_config = models.PostConfig.objects.get(id=post)
+            post_config.likeNo += 1
+            post_config.save()
+
+            return response.Response({"likeNo": post_config.likeNo}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, postid, reaction, format=None):
+        try:
+            post = models.Post.objects.get(id=postid) if models.Post.objects.filter(
+                id=postid).exists() else None
+
+            if post is None:
+                return response.Response({"error": "No Such Post is there."}, status=status.HTTP_400_BAD_REQUEST)
+
+            reaction_record = models.PostReaction.objects.get(post=post) if models.PostReaction.objects.filter(
+                post=post).exists() else models.PostReaction.objects.create(post=post)
+
+            if reaction == "like":
+                reaction_record.like.remove(request.user)
+            elif reaction == "heart":
+                reaction_record.heart.remove(request.user)
+            elif reaction == "care":
+                reaction_record.care.remove(request.user)
+            elif reaction == "laugh":
+                reaction_record.laugh.remove(request.user)
+            elif reaction == "wow":
+                reaction_record.wow.remove(request.user)
+            elif reaction == "angry":
+                reaction_record.angry.remove(request.user)
+
+            post_config = models.PostConfig.objects.get(id=post)
+            post_config.likeNo -= 1
+            post_config.save()
+
+            return response.Response({"likeNo": post_config.likeNo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)

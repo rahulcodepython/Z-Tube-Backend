@@ -40,7 +40,7 @@ REACTION_CHOICE = [
 class PostConfig(models.Model):
     id = models.OneToOneField(
         Post, on_delete=models.CASCADE, primary_key=True, editable=False)
-    # master = models.ForeignKey(User, on_delete=models.CASCADE)
+    uploader = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     createdAt = models.CharField(max_length=500)
     isPublic = models.BooleanField(default=False)
     isProtected = models.BooleanField(default=False)

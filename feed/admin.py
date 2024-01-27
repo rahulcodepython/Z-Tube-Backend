@@ -9,7 +9,7 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(models.PostConfig)
 class PostConfigAdmin(admin.ModelAdmin):
-    list_display = ['id']
+    list_display = ['id', 'uploader']
 
 
 @admin.register(models.PostRecord)
