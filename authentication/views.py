@@ -81,8 +81,11 @@ class ProfileView(views.APIView):
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def patch(self, request, format=None):
+    def patch(self, request, username, format=None):
         try:
+            if request.user.username != username:
+                return response.Response({"error": "You are not allowed to do this."}, status=status.HTTP_403_FORBIDDEN)
+
             if 'email' in request.data:
                 del request.data["email"]
 
