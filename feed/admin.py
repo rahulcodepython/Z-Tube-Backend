@@ -25,3 +25,8 @@ class CommentAdmin(admin.ModelAdmin):
 @admin.register(models.CommentRecord)
 class CommentRecordAdmin(admin.ModelAdmin):
     list_display = ['post']
+
+
+@admin.register(models.PostReaction)
+class PostReactionAdmin(admin.ModelAdmin):
+    list_display = ['post', 'user', 'reaction']

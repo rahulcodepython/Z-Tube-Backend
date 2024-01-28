@@ -27,13 +27,13 @@ class Post(models.Model):
 
 
 REACTION_CHOICE = [
-    ("0", "Like"),
-    ("1", "Heart"),
-    ("2", "Care"),
-    ("3", "Laugh"),
-    ("4", "Amazed"),
-    ("5", "Cry"),
-    ("6", "Angry"),
+    ("like", "Like"),
+    ("heart", "Heart"),
+    ("care", "Care"),
+    ("laugh", "Laugh"),
+    ("wow", "Wow"),
+    ("cry", "Cry"),
+    ("angry", "Angry"),
 ]
 
 
@@ -102,14 +102,10 @@ class CommentRecord(models.Model):
 
 
 class PostReaction(models.Model):
-    post = models.OneToOneField(Post, on_delete=models.CASCADE)
-    like = models.ManyToManyField(User, related_name="like_post")
-    heart = models.ManyToManyField(User, related_name="heart_post")
-    care = models.ManyToManyField(User, related_name="care_post")
-    laugh = models.ManyToManyField(User, related_name="laugh_post")
-    wow = models.ManyToManyField(User, related_name="wow_post")
-    cry = models.ManyToManyField(User, related_name="cry_post")
-    angry = models.ManyToManyField(User, related_name="angry_post")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    reaction = models.CharField(
+        max_length=100, choices=REACTION_CHOICE, default=None, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Post Reaction'

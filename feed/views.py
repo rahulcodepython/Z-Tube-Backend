@@ -79,8 +79,16 @@ class ViewUserAllPostsView(views.APIView):
                     serialized_post = serializers.PostSerializer(post)
                     serialized_post_config = serializers.PostConfigSerializer(
                         models.PostConfig.objects.get(id=post.id))
-                    postsList.append(
-                        {**serialized_post.data, **serialized_post_config.data, **{"self": True if request.user == user else False}})
+                    postsList.append({
+                        **serialized_post.data,
+                        **serialized_post_config.data,
+                        **{"self": True if request.user == user else False},
+                        **{
+                            "user_reaction":
+                            models.PostReaction.objects.get(post=post, user=request.user).reaction if models.PostReaction.objects.filter(
+                                post=post, user=request.user).exists() else None
+                        }
+                    })
 
                 return response.Response(postsList, status=status.HTTP_200_OK)
             else:
@@ -170,7 +178,7 @@ class ViewCommentView(views.APIView):
 class AddPostReactionView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def patch(self, request, postid, reaction, format=None):
+    def post(self, request, postid, reaction, format=None):
         try:
             post = models.Post.objects.get(id=postid) if models.Post.objects.filter(
                 id=postid).exists() else None
@@ -178,25 +186,20 @@ class AddPostReactionView(views.APIView):
             if post is None:
                 return response.Response({"error": "No Such Post is there."}, status=status.HTTP_400_BAD_REQUEST)
 
-            reaction_record = models.PostReaction.objects.get(post=post) if models.PostReaction.objects.filter(
-                post=post).exists() else models.PostReaction.objects.create(post=post)
-
-            if reaction == "like":
-                reaction_record.like.add(request.user)
-            elif reaction == "heart":
-                reaction_record.heart.add(request.user)
-            elif reaction == "care":
-                reaction_record.care.add(request.user)
-            elif reaction == "laugh":
-                reaction_record.laugh.add(request.user)
-            elif reaction == "wow":
-                reaction_record.wow.add(request.user)
-            elif reaction == "angry":
-                reaction_record.angry.add(request.user)
-
             post_config = models.PostConfig.objects.get(id=post)
-            post_config.likeNo += 1
-            post_config.save()
+
+            if models.PostReaction.objects.filter(post=post, user=request.user).exists():
+                reaction_record = models.PostReaction.objects.get(
+                    post=post, user=request.user)
+                reaction_record.reaction = reaction
+            else:
+                reaction_record = models.PostReaction.objects.create(
+                    post=post, user=request.user)
+                reaction_record.reaction = reaction
+                post_config.likeNo += 1
+                post_config.save()
+
+            reaction_record.save()
 
             return response.Response({"likeNo": post_config.likeNo}, status=status.HTTP_200_OK)
 
@@ -211,25 +214,14 @@ class AddPostReactionView(views.APIView):
             if post is None:
                 return response.Response({"error": "No Such Post is there."}, status=status.HTTP_400_BAD_REQUEST)
 
-            reaction_record = models.PostReaction.objects.get(post=post) if models.PostReaction.objects.filter(
-                post=post).exists() else models.PostReaction.objects.create(post=post)
-
-            if reaction == "like":
-                reaction_record.like.remove(request.user)
-            elif reaction == "heart":
-                reaction_record.heart.remove(request.user)
-            elif reaction == "care":
-                reaction_record.care.remove(request.user)
-            elif reaction == "laugh":
-                reaction_record.laugh.remove(request.user)
-            elif reaction == "wow":
-                reaction_record.wow.remove(request.user)
-            elif reaction == "angry":
-                reaction_record.angry.remove(request.user)
-
             post_config = models.PostConfig.objects.get(id=post)
-            post_config.likeNo -= 1
-            post_config.save()
+
+            if models.PostReaction.objects.filter(post=post, user=request.user).exists():
+                post_reaction = models.PostReaction.objects.get(
+                    post=post, user=request.user)
+                post_reaction.delete()
+                post_config.likeNo -= 1
+                post_config.save()
 
             return response.Response({"likeNo": post_config.likeNo}, status=status.HTTP_200_OK)
 
