@@ -8,22 +8,7 @@ import os
 load_dotenv()
 
 # Environment Variable declaration
-DEBUG_ENV = os.environ.get('DEBUG')
-EMAIL_PORT_ENV = os.environ.get('EMAIL_PORT')
-EMAIL_HOST_USER_ENV = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD_ENV = os.environ.get('EMAIL_HOST_PASSWORD')
-ALLOWED_ORIGINS_ENV = os.environ.get('ALLOWED_ORIGINS')
-FRONTEND_DOMAIN_ENV = os.environ.get('FRONTEND_DOMAIN')
-FRONTEND_SITE_NAME_ENV = os.environ.get('FRONTEND_SITE_NAME')
-REDIRECT_URIS_ENV = os.environ.get('REDIRECT_URIS')
-GOOGLE_AUTH_KEY_ENV = os.environ.get('GOOGLE_AUTH_KEY')
-GOOGLE_AUTH_SECRET_KEY_ENV = os.environ.get('GOOGLE_AUTH_SECRET_KEY')
-DB_ENGINE_ENV = os.environ.get('DB_ENGINE')
-DB_NAME_ENV = os.environ.get('DB_NAME')
-DB_USER_ENV = os.environ.get('DB_USER')
-DB_PASSWORD_ENV = os.environ.get('DB_PASSWORD')
-DB_HOST_ENV = os.environ.get('DB_HOST')
-DB_PORT_ENV = os.environ.get('DB_PORT')
+BASE_APP_URL = 'http://localhost:3000'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -33,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = get_random_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if DEBUG_ENV == 'True' else False
+DEBUG = True if os.environ.get('DEBUG') == 'True' else False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.29.122']
 
@@ -54,7 +39,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'corsheaders',
-    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -94,14 +78,12 @@ AUTH_USER_MODEL = 'authentication.User'
 # Database
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-        'ENGINE': DB_ENGINE_ENV,
-        'NAME': DB_NAME_ENV,
-        'USER': DB_USER_ENV,
-        'PASSWORD': DB_PASSWORD_ENV,
-        'HOST': DB_HOST_ENV,
-        'PORT': DB_PORT_ENV,
+        'ENGINE': os.environ.get('DB_ENGINE'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
 
@@ -144,7 +126,7 @@ if DEBUG == True:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOWED_ORIGINS = [
-        ALLOWED_ORIGINS_ENV,
+        os.environ.get('ALLOWED_ORIGINS'),
     ]
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
@@ -168,12 +150,12 @@ SIMPLE_JWT = {
 # Email Setup
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = EMAIL_PORT_ENV
-EMAIL_HOST_USER = EMAIL_HOST_USER_ENV
-EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD_ENV
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
-DOMAIN = FRONTEND_DOMAIN_ENV
-SITE_NAME = FRONTEND_SITE_NAME_ENV
+DOMAIN = os.environ.get('BASE_APP_URL')
+SITE_NAME = os.environ.get('FRONTEND_SITE_NAME')
 
 
 # Djoser Settings
@@ -184,7 +166,6 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': 'password-reset-confirm/{uid}/{token}',
     'ACTIVATION_URL': 'auth/verify/email/{uid}/{token}',
     'TOKEN_MODEL': None,
-    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [REDIRECT_URIS_ENV],
     'EMAIL': {
         'activation': 'authentication.email.ActivationEmail',
     },
@@ -197,17 +178,9 @@ DJOSER = {
 
 # OAuth Settings
 AUTHENTICATION_BACKENDS = [
-    'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# Google OAuth2 Settings
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = GOOGLE_AUTH_KEY_ENV
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = GOOGLE_AUTH_SECRET_KEY_ENV
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-    'openid'
-]
-SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name']
-SOCIAL_AUTH_RAISE_EXCEPTIONS = False
+BASE_API_URL = os.environ.get('BASE_API_URL')
+GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID')
+GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET')

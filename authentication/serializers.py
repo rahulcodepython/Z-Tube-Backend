@@ -16,6 +16,11 @@ class UserSerializer(UserSerializer):
             (settings.LOGIN_FIELD, "is_superuser")
 
 
+class GoogleAuthSerializer(serializers.Serializer):
+    code = serializers.CharField(required=False)
+    error = serializers.CharField(required=False)
+
+
 class UserCreateSerializer(UserCreateSerializer):
     def create(self, validated_data):
         user = super().create(validated_data)

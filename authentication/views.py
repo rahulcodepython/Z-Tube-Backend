@@ -1,8 +1,9 @@
-from djoser.social.views import ProviderAuthView
+# from djoser.social.views import ProviderAuthView
 from rest_framework import views, response, permissions, status
-from . import serializers, models
+from . import serializers, models, google, jwttoken
 from django.contrib.auth import get_user_model
-
+from django.shortcuts import redirect
+from django.conf import settings
 
 User = get_user_model()
 
@@ -12,10 +13,20 @@ class TestIndex(views.APIView):
         return response.Response({"msg": "Ok! Running..."})
 
 
-class CustomProviderAuthView(ProviderAuthView):
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        return response
+class GoogleAuthView(views.APIView):
+    def get(self, request, *args, **kwargs):
+        auth_serializer = serializers.GoogleAuthSerializer(data=request.GET)
+        auth_serializer.is_valid(raise_exception=True)
+
+        validated_data = auth_serializer.validated_data
+        email = google.get_user_data(validated_data)
+
+        user = User.objects.get(email=email)
+
+        tokens = jwttoken.get_tokens_for_user(user)
+
+        return redirect(f"{settings.BASE_APP_URL}/auth/google/?access={
+            tokens['access']}&refresh={tokens['refresh']}")
 
 
 class UserDataView(views.APIView):
