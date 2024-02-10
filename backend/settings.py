@@ -20,7 +20,7 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.environ.get('DEBUG') == 'True' else False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.29.122']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
