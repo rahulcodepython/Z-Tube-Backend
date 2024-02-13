@@ -8,7 +8,7 @@ import os
 load_dotenv()
 
 # Environment Variable declaration
-BASE_APP_URL = 'http://localhost:3000'
+BASE_APP_URL = os.environ.get('BASE_APP_URL')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -45,8 +45,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -126,7 +126,7 @@ if DEBUG == True:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOWED_ORIGINS = [
-        os.environ.get('ALLOWED_ORIGINS'),
+        os.environ.get('BASE_APP_URL'),
     ]
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
@@ -184,3 +184,6 @@ AUTHENTICATION_BACKENDS = [
 BASE_API_URL = os.environ.get('BASE_API_URL')
 GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID')
 GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET')
+
+SESSION_COOKIE_SECURE = True if os.environ.get('DEBUG') == 'True' else False
+SECURE_SSL_REDIRECT = True if os.environ.get('DEBUG') == 'True' else False
