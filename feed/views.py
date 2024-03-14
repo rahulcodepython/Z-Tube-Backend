@@ -182,6 +182,26 @@ class ViewCommentView(views.APIView):
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
+class CommentEditView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def post(self, request, commentid, format=None):
+        try:
+            comment = models.Comment.objects.get(id=commentid) if models.Comment.objects.filter(id=commentid).exists() else None
+
+            if comment is None:
+                return response.Response({"error": "There is no such comment"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if request.data['comment'] is None:
+                return response.Response({"error": "No comment is passed"}, status=status.HTTP_400_BAD_REQUEST)
+
+            comment.comment = request.data['comment']
+            comment.save()
+
+            serialized = serializers.CommentSerializer(comment)
+
+            return response.Response(serialized.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 class AddPostReactionView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
