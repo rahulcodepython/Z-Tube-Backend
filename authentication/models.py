@@ -44,7 +44,7 @@ class Profile(models.Model):
     image = models.URLField(default='', blank=True, max_length=10000)
     banner = models.URLField(default='', blank=True, max_length=10000)
     tags = ArrayField(models.CharField(
-        max_length=100, blank=True), size=5, blank=True)
+        max_length=100, blank=True), size=5, blank=True, default=list)
     posts = models.IntegerField(default=0)
     followers = models.IntegerField(default=0)
     followings = models.IntegerField(default=0)

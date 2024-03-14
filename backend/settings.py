@@ -185,5 +185,5 @@ BASE_API_URL = os.environ.get('BASE_API_URL')
 GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID')
 GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET')
 
-SESSION_COOKIE_SECURE = True if os.environ.get('DEBUG') == 'True' else False
-SECURE_SSL_REDIRECT = True if os.environ.get('DEBUG') == 'True' else False
+SESSION_COOKIE_SECURE = True if os.environ.get('DEBUG') == 'False' else False
+SECURE_SSL_REDIRECT = True if os.environ.get('DEBUG') == 'False' else False

@@ -26,15 +26,15 @@ class CreatePostView(views.APIView):
             serialized_post.save()
 
             postConfig = models.PostConfig.objects.create(
-                id=models.Post.objects.get(id=serialized_post.data['id']), createdAt=request.data['createdAt'])
+                id=models.Post.objects.get(id=serialized_post.data['id']), createdAt=request.data['createdAt'], uploader=request.user)
 
-            if (request.data['visibility']['type'] in POST_VISIBILITY_TYPE and request.data['visibility']['type'] == 'public'):
+            if request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'public':
                 postConfig.isPublic = True
                 postConfig.save()
-            elif (request.data['visibility']['type'] in POST_VISIBILITY_TYPE and request.data['visibility']['type'] == 'protected'):
+            elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'protected':
                 postConfig.isProtected = True
                 postConfig.save()
-            elif (request.data['visibility']['type'] in POST_VISIBILITY_TYPE and request.data['visibility']['type'] == 'private'):
+            elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'private':
                 postConfig.isPrivate = True
                 postConfig.save()
 
@@ -61,7 +61,7 @@ class CreatePostView(views.APIView):
 class ViewUserAllPostsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, username, format=None):
+    def get(self, request: object, username: object) -> object:
         try:
             user = User.objects.get(username=username) if User.objects.filter(
                 username=username).exists() else None
@@ -112,7 +112,7 @@ class CreateCommentView(views.APIView):
 
             postConfig = models.PostConfig.objects.get(id=post)
 
-            if postConfig.allowComments == False:
+            if not postConfig.allowComments:
                 return response.Response({'msg': "Comments are not allowed to the post"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
             comment_id = f"{postid}+{uuid.uuid4()}"
@@ -125,15 +125,16 @@ class CreateCommentView(views.APIView):
             postConfig.commentNo += 1
             postConfig.save()
 
-            if models.CommentRecord.objects.filter(post=post).exists():
-                commentRecord = models.CommentRecord.objects.get(post=post)
-                commentRecord.comments.add(comment)
-                commentRecord.save()
+            if master is None:
+                if models.CommentRecord.objects.filter(post=post).exists():
+                    commentRecord = models.CommentRecord.objects.get(post=post)
+                    commentRecord.comments.add(comment)
+                    commentRecord.save()
 
-            else:
-                commentRecord = models.CommentRecord.objects.create(post=post)
-                commentRecord.comments.add(comment)
-                commentRecord.save()
+                else:
+                    commentRecord = models.CommentRecord.objects.create(post=post)
+                    commentRecord.comments.add(comment)
+                    commentRecord.save()
 
             comment_serialized = serializers.CommentSerializer(comment)
 
@@ -165,9 +166,16 @@ class ViewCommentView(views.APIView):
 
             commentList = []
 
-            for c in comment_record.comments.all():
-                serialized = serializers.CommentSerializer(c)
-                commentList.append(serialized.data)
+            for comment in comment_record.comments.all():
+                serialized = serializers.CommentSerializer(comment)
+                childrens = models.Comment.objects.filter(master=comment.id)
+                childList = []
+
+                for child in childrens:
+                    serialized_children = serializers.CommentSerializer(child)
+                    childList.append(serialized_children.data)
+
+                commentList.append({**serialized.data, **{"children": childList}})
 
             return response.Response(commentList, status=status.HTTP_200_OK)
 
