@@ -26,17 +26,18 @@ class CreatePostView(views.APIView):
             serialized_post.save()
 
             postConfig = models.PostConfig.objects.create(
-                id=models.Post.objects.get(id=serialized_post.data['id']), createdAt=request.data['createdAt'], uploader=request.user)
+                id=models.Post.objects.get(id=serialized_post.data['id']), createdAt=request.data['createdAt'], uploader=request.user, allowComments=request.data['allowComments'])
 
             if request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'public':
                 postConfig.isPublic = True
-                postConfig.save()
+
             elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'protected':
                 postConfig.isProtected = True
-                postConfig.save()
+
             elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'private':
                 postConfig.isPrivate = True
-                postConfig.save()
+
+            postConfig.save()
 
             if models.PostRecord.objects.filter(user=request.user).exists():
                 record = models.PostRecord.objects.get(user=request.user)
@@ -53,6 +54,60 @@ class CreatePostView(views.APIView):
                 models.PostConfig.objects.get(id=postConfig))
 
             return response.Response({**serialized_post.data, **serialized_post_config.data}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EditPostView(views.APIView):
+    # permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, postid, format=None):
+        try:
+            post = models.Post.objects.get(id=postid) if models.Post.objects.filter(
+                id=postid).exists() else None
+
+            if post is None:
+                return response.Response({"error": "No such post."}, status=status.HTTP_400_BAD_REQUEST)
+
+            serialized_post = serializers.PostSerializer(instance=post, data=request.data)
+
+            if not serialized_post.is_valid():
+                return response.Response({"error": "Your data is not valid."}, status=status.HTTP_400_BAD_REQUEST)
+
+            serialized_post.save()
+
+            postConfig = models.PostConfig.objects.get(id=post)
+
+            postConfig.allowComments = request.data['allowComments']
+
+            if request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'public':
+                postConfig.isPublic = True
+                postConfig.isProtected = False
+                postConfig.isPersonal = False
+                postConfig.isHidden = False
+                postConfig.isPrivate = False
+
+            elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'protected':
+                postConfig.isProtected = True
+                postConfig.isPublic = False
+                postConfig.isPersonal = False
+                postConfig.isHidden = False
+                postConfig.isPrivate = False
+
+            elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'private':
+                postConfig.isPrivate = True
+                postConfig.isPublic = False
+                postConfig.isProtected = False
+                postConfig.isPersonal = False
+                postConfig.isHidden = False
+
+            postConfig.save()
+
+            serialized_post_config = serializers.PostConfigSerializer(
+                postConfig)
+
+            return response.Response({**serialized_post.data, **serialized_post_config.data, **{"self": True if request.user == postConfig.uploader else False}}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -132,7 +187,8 @@ class CreateCommentView(views.APIView):
                     commentRecord.save()
 
                 else:
-                    commentRecord = models.CommentRecord.objects.create(post=post)
+                    commentRecord = models.CommentRecord.objects.create(
+                        post=post)
                     commentRecord.comments.add(comment)
                     commentRecord.save()
 
@@ -175,18 +231,22 @@ class ViewCommentView(views.APIView):
                     serialized_children = serializers.CommentSerializer(child)
                     childList.append(serialized_children.data)
 
-                commentList.append({**serialized.data, **{"children": childList}})
+                commentList.append(
+                    {**serialized.data, **{"children": childList}})
 
             return response.Response(commentList, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class CommentEditView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request, commentid, format=None):
         try:
-            comment = models.Comment.objects.get(id=commentid) if models.Comment.objects.filter(id=commentid).exists() else None
+            comment = models.Comment.objects.get(
+                id=commentid) if models.Comment.objects.filter(id=commentid).exists() else None
 
             if comment is None:
                 return response.Response({"error": "There is no such comment"}, status=status.HTTP_400_BAD_REQUEST)
@@ -202,6 +262,7 @@ class CommentEditView(views.APIView):
             return response.Response(serialized.data, status=status.HTTP_200_OK)
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class AddPostReactionView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]

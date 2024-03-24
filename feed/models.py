@@ -9,9 +9,9 @@ User = get_user_model()
 class Post(models.Model):
     id = models.CharField(max_length=1000, primary_key=True,
                           editable=False, db_index=True)
-    caption = models.TextField(default="")
-    tags = ArrayField(models.CharField(max_length=100), size=3, blank=True)
-    media = ArrayField(models.CharField(max_length=5000))
+    caption = models.TextField(default="", editable=True)
+    tags = ArrayField(models.CharField(max_length=100), size=3, blank=True, default=list, editable=True)
+    media = ArrayField(models.CharField(max_length=5000),default=list, editable=True)
 
     class Meta:
         verbose_name = 'Post'
@@ -23,7 +23,7 @@ class Post(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             self.id = uuid.uuid4()
-            return super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 REACTION_CHOICE = [

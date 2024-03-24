@@ -12,6 +12,9 @@ class PostSerializer(serializers.ModelSerializer):
         model = models.Post
         fields = '__all__'
 
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+
 
 class PostConfigSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
