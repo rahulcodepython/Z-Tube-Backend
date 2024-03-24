@@ -70,7 +70,8 @@ class EditPostView(views.APIView):
             if post is None:
                 return response.Response({"error": "No such post."}, status=status.HTTP_400_BAD_REQUEST)
 
-            serialized_post = serializers.PostSerializer(instance=post, data=request.data)
+            serialized_post = serializers.PostSerializer(
+                instance=post, data=request.data)
 
             if not serialized_post.is_valid():
                 return response.Response({"error": "Your data is not valid."}, status=status.HTTP_400_BAD_REQUEST)
@@ -116,7 +117,7 @@ class EditPostView(views.APIView):
 class ViewUserAllPostsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request: object, username: object) -> object:
+    def get(self, request, username, format=None):
         try:
             user = User.objects.get(username=username) if User.objects.filter(
                 username=username).exists() else None
