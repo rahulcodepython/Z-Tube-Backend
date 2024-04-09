@@ -60,7 +60,7 @@ class CreatePostView(views.APIView):
 
 
 class EditPostView(views.APIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def patch(self, request, postid, format=None):
         try:
