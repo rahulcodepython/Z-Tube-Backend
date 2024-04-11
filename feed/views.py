@@ -1,5 +1,6 @@
 from rest_framework import views, response, status, permissions
 from . import models, serializers
+from authentication import models as auth_models
 from django.contrib.auth import get_user_model
 import uuid
 
@@ -53,7 +54,15 @@ class CreatePostView(views.APIView):
             serialized_post_config = serializers.PostConfigSerializer(
                 models.PostConfig.objects.get(id=postConfig))
 
-            return response.Response({**serialized_post.data, **serialized_post_config.data}, status=status.HTTP_201_CREATED)
+            profile = auth_models.Profile.objects.get(user=request.user)
+            profile.posts += 1
+            profile.save()
+
+            return response.Response({
+                'content': {**serialized_post.data, **serialized_post_config.data},
+                'posts': profile.posts,
+                "self": True
+            }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -108,7 +117,35 @@ class EditPostView(views.APIView):
             serialized_post_config = serializers.PostConfigSerializer(
                 postConfig)
 
-            return response.Response({**serialized_post.data, **serialized_post_config.data, **{"self": True if request.user == postConfig.uploader else False}}, status=status.HTTP_201_CREATED)
+            return response.Response({
+                **serialized_post.data, **serialized_post_config.data,
+                "self": True if request.user == postConfig.uploader else False
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, postid, format=None):
+        try:
+            post = models.Post.objects.get(id=postid) if models.Post.objects.filter(
+                id=postid).exists() else None
+
+            if post is None:
+                return response.Response({"error": "No such post."}, status=status.HTTP_400_BAD_REQUEST)
+
+            postConfig = models.PostConfig.objects.get(id=post)
+
+            if postConfig.uploader != request.user:
+                return response.Response({"error": "You are not the uploader of this post."}, status=status.HTTP_400_BAD_REQUEST)
+
+            post.delete()
+            postConfig.delete()
+
+            profile = auth_models.Profile.objects.get(user=request.user)
+            profile.posts -= 1
+            profile.save()
+
+            return response.Response({'posts': profile.posts}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -138,12 +175,8 @@ class ViewUserAllPostsView(views.APIView):
                     postsList.append({
                         **serialized_post.data,
                         **serialized_post_config.data,
-                        **{"self": True if request.user == user else False},
-                        **{
-                            "user_reaction":
-                            models.PostReaction.objects.get(post=post, user=request.user).reaction if models.PostReaction.objects.filter(
-                                post=post, user=request.user).exists() else None
-                        }
+                        "self": True if request.user == user else False,
+                        "user_reaction": models.PostReaction.objects.get(post=post, user=request.user).reaction if models.PostReaction.objects.filter(post=post, user=request.user).exists() else None
                     })
 
                 return response.Response(postsList, status=status.HTTP_200_OK)
@@ -197,7 +230,8 @@ class CreateCommentView(views.APIView):
 
             return response.Response({
                 "comment": comment_serialized.data,
-                "commentNo": postConfig.commentNo
+                "commentNo": postConfig.commentNo,
+                'self': True,
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -230,10 +264,16 @@ class ViewCommentView(views.APIView):
 
                 for child in childrens:
                     serialized_children = serializers.CommentSerializer(child)
-                    childList.append(serialized_children.data)
+                    childList.append({
+                        **serialized_children.data,
+                        "self": True if request.user == child.uploader else False
+                    })
 
-                commentList.append(
-                    {**serialized.data, **{"children": childList}})
+                commentList.append({
+                    **serialized.data,
+                    "self": True if request.user == comment.uploader else False,
+                    **{"children": childList}
+                })
 
             return response.Response(commentList, status=status.HTTP_200_OK)
 
@@ -260,13 +300,12 @@ class CommentEditView(views.APIView):
 
             serialized = serializers.CommentSerializer(comment)
 
-            return response.Response(serialized.data, status=status.HTTP_200_OK)
+            return response.Response({
+                **serialized.data,
+                "self": True if request.user == comment.uploader else False
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CommentDeleteView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, commentid, format=None):
         try:
@@ -276,6 +315,9 @@ class CommentDeleteView(views.APIView):
             if comment is None:
                 return response.Response({"error": "There is no such comment"}, status=status.HTTP_400_BAD_REQUEST)
 
+            if comment.uploader != request.user:
+                return response.Response({"error": "You have no access to delete this comment."}, status=status.HTTP_400_BAD_REQUEST)
+
             post = models.Post.objects.get(id=comment.id.split('+')[0])
 
             comment.delete()
@@ -284,7 +326,7 @@ class CommentDeleteView(views.APIView):
             postConfig.commentNo -= 1
             postConfig.save()
 
-            return response.Response({}, status=status.HTTP_200_OK)
+            return response.Response({'commentNo': postConfig.commentNo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
