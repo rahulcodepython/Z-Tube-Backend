@@ -265,6 +265,31 @@ class CommentEditView(views.APIView):
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CommentDeleteView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, commentid, format=None):
+        try:
+            comment = models.Comment.objects.get(
+                id=commentid) if models.Comment.objects.filter(id=commentid).exists() else None
+
+            if comment is None:
+                return response.Response({"error": "There is no such comment"}, status=status.HTTP_400_BAD_REQUEST)
+
+            post = models.Post.objects.get(id=comment.id.split('+')[0])
+
+            comment.delete()
+
+            postConfig = models.PostConfig.objects.get(id=post)
+            postConfig.commentNo -= 1
+            postConfig.save()
+
+            return response.Response({}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class AddPostReactionView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
