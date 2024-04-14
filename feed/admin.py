@@ -7,7 +7,6 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ['id', 'caption']
 
 
-@admin.register(models.PostConfig)
 class PostConfigAdmin(admin.ModelAdmin):
     list_display = ['id', 'uploader']
 

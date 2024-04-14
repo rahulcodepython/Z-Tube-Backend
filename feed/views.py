@@ -1,5 +1,6 @@
 from rest_framework import views, response, status, permissions
 from . import models, serializers
+from authentication import models as auth_models
 from django.contrib.auth import get_user_model
 import uuid
 
@@ -17,43 +18,58 @@ class CreatePostView(views.APIView):
 
     def post(self, request, format=None):
         try:
-            serialized_post = serializers.PostSerializer(
+            serialized = serializers.PostSerializer(
                 data=request.data)
 
-            if not serialized_post.is_valid():
+            if not serialized.is_valid():
                 return response.Response({"error": "Your data is not valid."}, status=status.HTTP_400_BAD_REQUEST)
 
-            serialized_post.save()
+            serialized.save(uploader=request.user)
 
-            postConfig = models.PostConfig.objects.create(
-                id=models.Post.objects.get(id=serialized_post.data['id']), createdAt=request.data['createdAt'], uploader=request.user, allowComments=request.data['allowComments'])
+            post = models.Post.objects.get(id=serialized.data['id'])
 
             if request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'public':
-                postConfig.isPublic = True
+                post.isPublic = True
+                post.isProtected = False
+                post.isPersonal = False
+                post.isHidden = False
+                post.isPrivate = False
 
             elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'protected':
-                postConfig.isProtected = True
+                post.isProtected = True
+                post.isPublic = False
+                post.isPersonal = False
+                post.isHidden = False
+                post.isPrivate = False
 
             elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'private':
-                postConfig.isPrivate = True
+                post.isPrivate = True
+                post.isPublic = False
+                post.isProtected = False
+                post.isPersonal = False
+                post.isHidden = False
 
-            postConfig.save()
+            post.save()
 
             if models.PostRecord.objects.filter(user=request.user).exists():
                 record = models.PostRecord.objects.get(user=request.user)
-                record.posts.add(models.Post.objects.get(
-                    id=serialized_post.data['id']))
+                record.posts.add(post)
                 record.save()
             else:
                 record = models.PostRecord.objects.create(user=request.user)
-                record.posts.add(models.Post.objects.get(
-                    id=serialized_post.data['id']))
+                record.posts.add(post)
                 record.save()
 
-            serialized_post_config = serializers.PostConfigSerializer(
-                models.PostConfig.objects.get(id=postConfig))
+            serialized_post = serializers.PostSerializer(post)
 
-            return response.Response({**serialized_post.data, **serialized_post_config.data}, status=status.HTTP_201_CREATED)
+            profile = auth_models.Profile.objects.get(user=request.user)
+            profile.posts += 1
+            profile.save()
+
+            return response.Response({
+                'content': {**serialized_post.data, "self": True},
+                'posts': profile.posts,
+            }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -74,41 +90,61 @@ class EditPostView(views.APIView):
                 instance=post, data=request.data)
 
             if not serialized_post.is_valid():
-                return response.Response({"error": "Your data is not valid."}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"error": serialized_post.errors}, status=status.HTTP_400_BAD_REQUEST)
 
             serialized_post.save()
 
-            postConfig = models.PostConfig.objects.get(id=post)
-
-            postConfig.allowComments = request.data['allowComments']
-
             if request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'public':
-                postConfig.isPublic = True
-                postConfig.isProtected = False
-                postConfig.isPersonal = False
-                postConfig.isHidden = False
-                postConfig.isPrivate = False
+                post.isPublic = True
+                post.isProtected = False
+                post.isPersonal = False
+                post.isHidden = False
+                post.isPrivate = False
 
             elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'protected':
-                postConfig.isProtected = True
-                postConfig.isPublic = False
-                postConfig.isPersonal = False
-                postConfig.isHidden = False
-                postConfig.isPrivate = False
+                post.isProtected = True
+                post.isPublic = False
+                post.isPersonal = False
+                post.isHidden = False
+                post.isPrivate = False
 
             elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'private':
-                postConfig.isPrivate = True
-                postConfig.isPublic = False
-                postConfig.isProtected = False
-                postConfig.isPersonal = False
-                postConfig.isHidden = False
+                post.isPrivate = True
+                post.isPublic = False
+                post.isProtected = False
+                post.isPersonal = False
+                post.isHidden = False
 
-            postConfig.save()
+            post.save()
 
-            serialized_post_config = serializers.PostConfigSerializer(
-                postConfig)
+            serialized_post = serializers.PostSerializer(post)
 
-            return response.Response({**serialized_post.data, **serialized_post_config.data, **{"self": True if request.user == postConfig.uploader else False}}, status=status.HTTP_201_CREATED)
+            return response.Response({
+                **serialized_post.data,
+                "self": True
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, postid, format=None):
+        try:
+            post = models.Post.objects.get(id=postid) if models.Post.objects.filter(
+                id=postid).exists() else None
+
+            if post is None:
+                return response.Response({"error": "No such post."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if post.uploader != request.user:
+                return response.Response({"error": "You are not the uploader of this post."}, status=status.HTTP_400_BAD_REQUEST)
+
+            post.delete()
+
+            profile = auth_models.Profile.objects.get(user=request.user)
+            profile.posts -= 1
+            profile.save()
+
+            return response.Response({'posts': profile.posts}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -127,29 +163,22 @@ class ViewUserAllPostsView(views.APIView):
 
             if models.PostRecord.objects.filter(user=user).exists():
                 postRecord = models.PostRecord.objects.get(user=user)
-                posts = postRecord.posts.all()
+                posts = postRecord.posts.all().order_by('-timestamp')
 
                 postsList = []
 
                 for post in posts:
                     serialized_post = serializers.PostSerializer(post)
-                    serialized_post_config = serializers.PostConfigSerializer(
-                        models.PostConfig.objects.get(id=post.id))
                     postsList.append({
                         **serialized_post.data,
-                        **serialized_post_config.data,
-                        **{"self": True if request.user == user else False},
-                        **{
-                            "user_reaction":
-                            models.PostReaction.objects.get(post=post, user=request.user).reaction if models.PostReaction.objects.filter(
-                                post=post, user=request.user).exists() else None
-                        }
+                        "self": True if request.user == user else False,
+                        "user_reaction": models.PostReaction.objects.get(post=post, user=request.user).reaction if models.PostReaction.objects.filter(post=post, user=request.user).exists() else None
                     })
 
                 return response.Response(postsList, status=status.HTTP_200_OK)
+
             else:
-                return response.Response({"error": "No Post Here"},
-                                         status=status.HTTP_204_NO_CONTENT)
+                return response.Response({"error": "No Post Here"}, status=status.HTTP_204_NO_CONTENT)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -166,9 +195,7 @@ class CreateCommentView(views.APIView):
             if post is None:
                 return response.Response({'msg': 'Invalid post id.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            postConfig = models.PostConfig.objects.get(id=post)
-
-            if not postConfig.allowComments:
+            if not post.allowComments:
                 return response.Response({'msg': "Comments are not allowed to the post"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
             comment_id = f"{postid}+{uuid.uuid4()}"
@@ -176,10 +203,10 @@ class CreateCommentView(views.APIView):
                 id=request.data['master']).exists() else None
 
             comment = models.Comment.objects.create(
-                id=comment_id, master=master, uploader=request.user, comment=request.data['comment'], createdAt=request.data['createdAt'])
+                id=comment_id, master=master, uploader=request.user, post=post, comment=request.data['comment'], createdAt=request.data['createdAt'])
 
-            postConfig.commentNo += 1
-            postConfig.save()
+            post.commentNo += 1
+            post.save()
 
             if master is None:
                 if models.CommentRecord.objects.filter(post=post).exists():
@@ -196,8 +223,8 @@ class CreateCommentView(views.APIView):
             comment_serialized = serializers.CommentSerializer(comment)
 
             return response.Response({
-                "comment": comment_serialized.data,
-                "commentNo": postConfig.commentNo
+                "comment": {**comment_serialized.data, "self": True},
+                "commentNo": post.commentNo,
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -223,17 +250,23 @@ class ViewCommentView(views.APIView):
 
             commentList = []
 
-            for comment in comment_record.comments.all():
+            for comment in comment_record.comments.all().order_by('-timestamp'):
                 serialized = serializers.CommentSerializer(comment)
                 childrens = models.Comment.objects.filter(master=comment.id)
                 childList = []
 
                 for child in childrens:
                     serialized_children = serializers.CommentSerializer(child)
-                    childList.append(serialized_children.data)
+                    childList.append({
+                        **serialized_children.data,
+                        "self": True if request.user == child.uploader else False
+                    })
 
-                commentList.append(
-                    {**serialized.data, **{"children": childList}})
+                commentList.append({
+                    **serialized.data,
+                    "self": True if request.user == comment.uploader else False,
+                    "children": childList
+                })
 
             return response.Response(commentList, status=status.HTTP_200_OK)
 
@@ -260,13 +293,12 @@ class CommentEditView(views.APIView):
 
             serialized = serializers.CommentSerializer(comment)
 
-            return response.Response(serialized.data, status=status.HTTP_200_OK)
+            return response.Response({
+                **serialized.data,
+                "self": True
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CommentDeleteView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, commentid, format=None):
         try:
@@ -276,15 +308,15 @@ class CommentDeleteView(views.APIView):
             if comment is None:
                 return response.Response({"error": "There is no such comment"}, status=status.HTTP_400_BAD_REQUEST)
 
-            post = models.Post.objects.get(id=comment.id.split('+')[0])
+            if comment.uploader != request.user:
+                return response.Response({"error": "You have no access to delete this comment."}, status=status.HTTP_400_BAD_REQUEST)
 
             comment.delete()
 
-            postConfig = models.PostConfig.objects.get(id=post)
-            postConfig.commentNo -= 1
-            postConfig.save()
+            comment.post.commentNo -= 1
+            comment.post.save()
 
-            return response.Response({}, status=status.HTTP_200_OK)
+            return response.Response({'commentNo': comment.post.commentNo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -301,8 +333,6 @@ class AddPostReactionView(views.APIView):
             if post is None:
                 return response.Response({"error": "No Such Post is there."}, status=status.HTTP_400_BAD_REQUEST)
 
-            post_config = models.PostConfig.objects.get(id=post)
-
             if models.PostReaction.objects.filter(post=post, user=request.user).exists():
                 reaction_record = models.PostReaction.objects.get(
                     post=post, user=request.user)
@@ -311,12 +341,12 @@ class AddPostReactionView(views.APIView):
                 reaction_record = models.PostReaction.objects.create(
                     post=post, user=request.user)
                 reaction_record.reaction = reaction
-                post_config.likeNo += 1
-                post_config.save()
+                post.likeNo += 1
+                post.save()
 
             reaction_record.save()
 
-            return response.Response({"likeNo": post_config.likeNo}, status=status.HTTP_200_OK)
+            return response.Response({"likeNo": post.likeNo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -329,16 +359,14 @@ class AddPostReactionView(views.APIView):
             if post is None:
                 return response.Response({"error": "No Such Post is there."}, status=status.HTTP_400_BAD_REQUEST)
 
-            post_config = models.PostConfig.objects.get(id=post)
-
             if models.PostReaction.objects.filter(post=post, user=request.user).exists():
                 post_reaction = models.PostReaction.objects.get(
                     post=post, user=request.user)
                 post_reaction.delete()
-                post_config.likeNo -= 1
-                post_config.save()
+                post.likeNo -= 1
+                post.save()
 
-            return response.Response({"likeNo": post_config.likeNo}, status=status.HTTP_200_OK)
+            return response.Response({"likeNo": post.likeNo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 import uuid
+from datetime import datetime
 
 User = get_user_model()
 
@@ -10,36 +11,11 @@ class Post(models.Model):
     id = models.CharField(max_length=1000, primary_key=True,
                           editable=False, db_index=True)
     caption = models.TextField(default="", editable=True)
-    tags = ArrayField(models.CharField(max_length=100), size=3, blank=True, default=list, editable=True)
-    media = ArrayField(models.CharField(max_length=5000),default=list, editable=True)
-
-    class Meta:
-        verbose_name = 'Post'
-        verbose_name_plural = 'Post'
-
-    def __str__(self) -> str:
-        return f"{self.id}"
-
-    def save(self, *args, **kwargs):
-        if not self.id:
-            self.id = uuid.uuid4()
-        return super().save(*args, **kwargs)
-
-
-REACTION_CHOICE = [
-    ("like", "Like"),
-    ("heart", "Heart"),
-    ("care", "Care"),
-    ("laugh", "Laugh"),
-    ("wow", "Wow"),
-    ("cry", "Cry"),
-    ("angry", "Angry"),
-]
-
-
-class PostConfig(models.Model):
-    id = models.OneToOneField(
-        Post, on_delete=models.CASCADE, primary_key=True, editable=False)
+    tags = ArrayField(models.CharField(max_length=100), size=3,
+                      blank=True, default=list, editable=True)
+    media = ArrayField(models.CharField(max_length=5000),
+                       default=list, editable=True)
+    timestamp = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     createdAt = models.CharField(max_length=500)
     isPublic = models.BooleanField(default=False)
@@ -58,11 +34,28 @@ class PostConfig(models.Model):
     commentNo = models.IntegerField(default=0)
 
     class Meta:
-        verbose_name = 'Post Configuration'
-        verbose_name_plural = 'Post Configurations'
+        verbose_name = 'Post'
+        verbose_name_plural = 'Post'
 
     def __str__(self) -> str:
         return f"{self.id}"
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = uuid.uuid4()
+        self.timestamp = datetime.now()
+        return super().save(*args, **kwargs)
+
+
+REACTION_CHOICE = [
+    ("like", "Like"),
+    ("heart", "Heart"),
+    ("care", "Care"),
+    ("laugh", "Laugh"),
+    ("wow", "Wow"),
+    ("cry", "Cry"),
+    ("angry", "Angry"),
+]
 
 
 class PostRecord(models.Model):
@@ -81,8 +74,11 @@ class Comment(models.Model):
         "self", on_delete=models.CASCADE, related_name="+", null=True, blank=True)
     uploader = models.ForeignKey(
         User, on_delete=models.SET_DEFAULT, default=None, null=True)
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, default=None, null=True, blank=True)
     comment = models.TextField()
     createdAt = models.CharField(max_length=500)
+    timestamp = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Comment'
@@ -90,6 +86,10 @@ class Comment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.id}"
+
+    def save(self, *args, **kwargs):
+        self.timestamp = datetime.now()
+        return super().save(*args, **kwargs)
 
 
 class CommentRecord(models.Model):

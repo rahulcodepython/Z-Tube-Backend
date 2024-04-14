@@ -50,24 +50,12 @@ class Profile(models.Model):
     followings = models.IntegerField(default=0)
     Connections = models.ManyToManyField(
         User, related_name='Connections', blank=True)
-
-    class Meta:
-        verbose_name = 'Profile'
-        verbose_name_plural = 'Profiles'
-
-    def __str__(self) -> str:
-        return self.user.email
-
-
-class ProfileConfig(models.Model):
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, primary_key=True)
     isVerified = models.BooleanField(default=False)
     isLocked = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name = 'Profile Configuration'
-        verbose_name_plural = 'Profile Configurations'
+        verbose_name = 'Profile'
+        verbose_name_plural = 'Profiles'
 
     def __str__(self) -> str:
         return self.user.email
