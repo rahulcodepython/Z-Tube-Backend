@@ -121,7 +121,7 @@ class EditPostView(views.APIView):
 
             return response.Response({
                 **serialized_post.data,
-                "self": True if request.user == post.uploader else False
+                "self": True
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -195,9 +195,7 @@ class CreateCommentView(views.APIView):
             if post is None:
                 return response.Response({'msg': 'Invalid post id.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            postConfig = models.PostConfig.objects.get(id=post)
-
-            if not postConfig.allowComments:
+            if not post.allowComments:
                 return response.Response({'msg': "Comments are not allowed to the post"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
             comment_id = f"{postid}+{uuid.uuid4()}"
@@ -207,8 +205,8 @@ class CreateCommentView(views.APIView):
             comment = models.Comment.objects.create(
                 id=comment_id, master=master, uploader=request.user, post=post, comment=request.data['comment'], createdAt=request.data['createdAt'])
 
-            postConfig.commentNo += 1
-            postConfig.save()
+            post.commentNo += 1
+            post.save()
 
             if master is None:
                 if models.CommentRecord.objects.filter(post=post).exists():
@@ -225,9 +223,8 @@ class CreateCommentView(views.APIView):
             comment_serialized = serializers.CommentSerializer(comment)
 
             return response.Response({
-                "comment": comment_serialized.data,
-                "commentNo": postConfig.commentNo,
-                'self': True,
+                "comment": {**comment_serialized.data, "self": True},
+                "commentNo": post.commentNo,
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -298,7 +295,7 @@ class CommentEditView(views.APIView):
 
             return response.Response({
                 **serialized.data,
-                "self": True if request.user == comment.uploader else False
+                "self": True
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -314,15 +311,12 @@ class CommentEditView(views.APIView):
             if comment.uploader != request.user:
                 return response.Response({"error": "You have no access to delete this comment."}, status=status.HTTP_400_BAD_REQUEST)
 
-            post = models.Post.objects.get(id=comment.id.split('+')[0])
-
             comment.delete()
 
-            postConfig = models.PostConfig.objects.get(id=post)
-            postConfig.commentNo -= 1
-            postConfig.save()
+            comment.post.commentNo -= 1
+            comment.post.save()
 
-            return response.Response({'commentNo': postConfig.commentNo}, status=status.HTTP_200_OK)
+            return response.Response({'commentNo': comment.post.commentNo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -339,8 +333,6 @@ class AddPostReactionView(views.APIView):
             if post is None:
                 return response.Response({"error": "No Such Post is there."}, status=status.HTTP_400_BAD_REQUEST)
 
-            post_config = models.PostConfig.objects.get(id=post)
-
             if models.PostReaction.objects.filter(post=post, user=request.user).exists():
                 reaction_record = models.PostReaction.objects.get(
                     post=post, user=request.user)
@@ -349,12 +341,12 @@ class AddPostReactionView(views.APIView):
                 reaction_record = models.PostReaction.objects.create(
                     post=post, user=request.user)
                 reaction_record.reaction = reaction
-                post_config.likeNo += 1
-                post_config.save()
+                post.likeNo += 1
+                post.save()
 
             reaction_record.save()
 
-            return response.Response({"likeNo": post_config.likeNo}, status=status.HTTP_200_OK)
+            return response.Response({"likeNo": post.likeNo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -367,16 +359,14 @@ class AddPostReactionView(views.APIView):
             if post is None:
                 return response.Response({"error": "No Such Post is there."}, status=status.HTTP_400_BAD_REQUEST)
 
-            post_config = models.PostConfig.objects.get(id=post)
-
             if models.PostReaction.objects.filter(post=post, user=request.user).exists():
                 post_reaction = models.PostReaction.objects.get(
                     post=post, user=request.user)
                 post_reaction.delete()
-                post_config.likeNo -= 1
-                post_config.save()
+                post.likeNo -= 1
+                post.save()
 
-            return response.Response({"likeNo": post_config.likeNo}, status=status.HTTP_200_OK)
+            return response.Response({"likeNo": post.likeNo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)

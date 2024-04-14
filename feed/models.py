@@ -58,34 +58,6 @@ REACTION_CHOICE = [
 ]
 
 
-# class PostConfig(models.Model):
-#     id = models.OneToOneField(
-#         Post, on_delete=models.CASCADE, primary_key=True, editable=False)
-#     uploader = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-#     createdAt = models.CharField(max_length=500)
-#     isPublic = models.BooleanField(default=False)
-#     isProtected = models.BooleanField(default=False)
-#     isPersonal = models.BooleanField(default=False)
-#     isHidden = models.BooleanField(default=False)
-#     isPrivate = models.BooleanField(default=False)
-#     visibleTo = models.ManyToManyField(
-#         User, related_name='visible_to', blank=True)
-#     hiddenFrom = models.ManyToManyField(
-#         User, related_name='hidden_from', blank=True)
-#     likeNo = models.IntegerField(default=0)
-#     viewsNo = models.IntegerField(default=0)
-#     share = models.IntegerField(default=0)
-#     allowComments = models.BooleanField(default=True)
-#     commentNo = models.IntegerField(default=0)
-
-#     class Meta:
-#         verbose_name = 'Post Configuration'
-#         verbose_name_plural = 'Post Configurations'
-
-#     def __str__(self) -> str:
-#         return f"{self.id}"
-
-
 class PostRecord(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     posts = models.ManyToManyField(Post)
