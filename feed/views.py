@@ -59,9 +59,8 @@ class CreatePostView(views.APIView):
             profile.save()
 
             return response.Response({
-                'content': {**serialized_post.data, **serialized_post_config.data},
+                'content': {**serialized_post.data, **serialized_post_config.data, "self": True},
                 'posts': profile.posts,
-                "self": True
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -272,7 +271,7 @@ class ViewCommentView(views.APIView):
                 commentList.append({
                     **serialized.data,
                     "self": True if request.user == comment.uploader else False,
-                    **{"children": childList}
+                    "children": childList
                 })
 
             return response.Response(commentList, status=status.HTTP_200_OK)

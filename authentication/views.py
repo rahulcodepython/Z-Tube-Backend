@@ -81,11 +81,9 @@ class ProfileView(views.APIView):
                     **serialized_data_user.data,
                     **serialized_data_profile.data,
                     **serialized_data_profileconfig.data,
-                    **{
-                        "isFriend": True if request.user in models.Profile.objects.get(
-                            user=user).Connections.all() else False,
-                        "self": True if request.user == user else False
-                    }
+                    "isFriend": True if request.user in models.Profile.objects.get(
+                        user=user).Connections.all() else False,
+                    "self": True if request.user == user else False
                 },
                 status=status.HTTP_200_OK)
 
@@ -126,10 +124,8 @@ class ProfileView(views.APIView):
                         **serialized_data_profile.data,
                         **serialized_data_user.data,
                         **serialized_data_profileconfig.data,
-                        **{
-                            "isFriend": False,
-                            "self": True
-                        }
+                        "isFriend": False,
+                        "self": True
                     },
                     "user": serialized_data_user_basic_data.data
                 }, status=status.HTTP_202_ACCEPTED)
