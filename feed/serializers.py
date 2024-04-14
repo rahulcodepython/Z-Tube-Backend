@@ -7,22 +7,12 @@ class PostSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
     tags = serializers.ListField(child=serializers.CharField())
     media = serializers.ListField(child=serializers.CharField())
-
-    class Meta:
-        model = models.Post
-        fields = '__all__'
-
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
-
-
-class PostConfigSerializer(serializers.ModelSerializer):
-    id = serializers.StringRelatedField(read_only=True)
+    createdAt = serializers.CharField(required=False)
     uploader = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = models.PostConfig
-        exclude = ['visibleTo', 'hiddenFrom']
+        model = models.Post
+        exclude = ['visibleTo', 'hiddenFrom', 'timestamp']
 
     def get_uploader(self, obj):
         profile = auth_model.Profile.objects.get(user=obj.uploader)
@@ -32,6 +22,9 @@ class PostConfigSerializer(serializers.ModelSerializer):
             "image": profile.image
         }
 
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+
 
 class CommentSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
@@ -40,7 +33,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Comment
-        fields = '__all__'
+        exclude = ['post', 'timestamp']
 
     def get_uploader(self, obj):
         profile = auth_model.Profile.objects.get(user=obj.uploader)
