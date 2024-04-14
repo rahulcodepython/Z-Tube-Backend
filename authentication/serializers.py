@@ -51,12 +51,5 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Profile
         fields = ["bio", "image", "banner", "tags",
-                  "posts", "followers", "followings"]
-        read_only_fields = ["posts", "followers", "followings"]
-
-
-class ProfileConfigSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.ProfileConfig
-        fields = ["isLocked", "isVerified"]
-        read_only_fields = ["isVerified"]
+                  "posts", "followers", "followings", "isLocked", "isVerified"]
+        read_only_fields = ["posts", "followers", "followings", "isVerified"]

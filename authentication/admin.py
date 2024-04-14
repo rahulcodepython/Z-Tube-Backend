@@ -14,9 +14,4 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(models.Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'posts',
-                    'followers', 'followings']
-
-
-@admin.register(models.ProfileConfig)
-class ProfileConfigAdmin(admin.ModelAdmin):
-    list_display = ['user', 'isVerified', 'isLocked']
+                    'followers', 'followings', 'isVerified', 'isLocked']

@@ -73,14 +73,10 @@ class ProfileView(views.APIView):
 
             serialized_data_user = serializers.UserSerializer(user)
 
-            serialized_data_profileconfig = serializers.ProfileConfigSerializer(
-                models.ProfileConfig.objects.get(user=user))
-
             return response.Response(
                 {
                     **serialized_data_user.data,
                     **serialized_data_profile.data,
-                    **serialized_data_profileconfig.data,
                     "isFriend": True if request.user in models.Profile.objects.get(
                         user=user).Connections.all() else False,
                     "self": True if request.user == user else False
@@ -107,14 +103,10 @@ class ProfileView(views.APIView):
             serialized_data_profile = serializers.ProfileSerializer(
                 models.Profile.objects.get(user=request.user), data=request.data, partial=True)
 
-            serialized_data_profileconfig = serializers.ProfileConfigSerializer(
-                models.ProfileConfig.objects.get(user=request.user), data=request.data, partial=True)
-
-            if serialized_data_user.is_valid() and serialized_data_profile.is_valid() and serialized_data_profileconfig.is_valid():
+            if serialized_data_user.is_valid() and serialized_data_profile.is_valid():
 
                 serialized_data_user.save()
                 serialized_data_profile.save()
-                serialized_data_profileconfig.save()
 
                 serialized_data_user_basic_data = serializers.UserDataSerializer(
                     request.user)
@@ -123,7 +115,6 @@ class ProfileView(views.APIView):
                     "profile": {
                         **serialized_data_profile.data,
                         **serialized_data_user.data,
-                        **serialized_data_profileconfig.data,
                         "isFriend": False,
                         "self": True
                     },
@@ -152,6 +143,9 @@ class ConnectView(views.APIView):
             if request.user not in profile.Connections.all():
                 profile.Connections.add(request.user)
 
+            profile.followers += 1
+            profile.save()
+
             return response.Response({"msg": "You are now connected."}, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
@@ -169,6 +163,9 @@ class ConnectView(views.APIView):
 
             if request.user in profile.Connections.all():
                 profile.Connections.remove(request.user)
+
+            profile.followers += 1
+            profile.save()
 
             return response.Response({"msg": "You are now disconnected."}, status=status.HTTP_202_ACCEPTED)
 
