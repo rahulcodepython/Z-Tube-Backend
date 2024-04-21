@@ -38,8 +38,8 @@ class UserDataView(views.APIView):
 
             return response.Response(serialized_data.data, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FindUsernameView(views.APIView):
@@ -49,12 +49,12 @@ class FindUsernameView(views.APIView):
         try:
             username = request.data['username']
             if User.objects.filter(username=username).exists():
-                return response.Response({"error": "This username is already taken."}, status=status.HTTP_403_FORBIDDEN)
+                return response.Response({}, status=status.HTTP_403_FORBIDDEN)
 
             return response.Response({}, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProfileView(views.APIView):
@@ -66,30 +66,31 @@ class ProfileView(views.APIView):
                 username=username).exists() else None
 
             if user is None:
-                return response.Response({"error": "No user found."}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"msg": "No user found."}, status=status.HTTP_400_BAD_REQUEST)
 
-            serialized_data_profile = serializers.ProfileSerializer(
-                models.Profile.objects.get(user=user))
+            profile = models.Profile.objects.get(user=user)
+
+            if profile.isLocked:
+                return response.Response({"msg": "This account is locked."}, status=status.HTTP_403_FORBIDDEN)
+
+            serialized_data_profile = serializers.ProfileSerializer(profile)
 
             serialized_data_user = serializers.UserSerializer(user)
 
-            return response.Response(
-                {
-                    **serialized_data_user.data,
-                    **serialized_data_profile.data,
-                    "isFriend": True if request.user in models.Profile.objects.get(
-                        user=user).Connections.all() else False,
-                    "self": True if request.user == user else False
-                },
-                status=status.HTTP_200_OK)
+            return response.Response({
+                **serialized_data_user.data,
+                **serialized_data_profile.data,
+                "isFriend": True if request.user in profile.Connections.all() else False,
+                "self": True if request.user == user else False
+            }, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, username, format=None):
         try:
             if request.user.username != username:
-                return response.Response({"error": "You are not allowed to do this."}, status=status.HTTP_403_FORBIDDEN)
+                return response.Response({}, status=status.HTTP_403_FORBIDDEN)
 
             if 'email' in request.data:
                 del request.data["email"]
@@ -121,10 +122,10 @@ class ProfileView(views.APIView):
                     "user": serialized_data_user_basic_data.data
                 }, status=status.HTTP_202_ACCEPTED)
 
-            return response.Response({"error": "Data is not valid."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception as e:
-            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ConnectView(views.APIView):
@@ -136,7 +137,7 @@ class ConnectView(views.APIView):
                 username=username).exists() else None
 
             if user is None:
-                return response.Response({"error": "No user found"}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
             profile = models.Profile.objects.get(user=user)
 
@@ -146,10 +147,10 @@ class ConnectView(views.APIView):
             profile.followers += 1
             profile.save()
 
-            return response.Response({"msg": "You are now connected."}, status=status.HTTP_202_ACCEPTED)
+            return response.Response({"success": "You are now connected."}, status=status.HTTP_202_ACCEPTED)
 
-        except Exception as e:
-            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, username, format=None):
         try:
@@ -157,7 +158,7 @@ class ConnectView(views.APIView):
                 username=username).exists() else None
 
             if user is None:
-                return response.Response({"error": "No user found"}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
             profile = models.Profile.objects.get(user=user)
 
@@ -167,7 +168,7 @@ class ConnectView(views.APIView):
             profile.followers += 1
             profile.save()
 
-            return response.Response({"msg": "You are now disconnected."}, status=status.HTTP_202_ACCEPTED)
+            return response.Response({"success": "You are now disconnected."}, status=status.HTTP_202_ACCEPTED)
 
-        except Exception as e:
-            return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
