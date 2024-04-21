@@ -28,26 +28,32 @@ class CreatePostView(views.APIView):
 
             post = models.Post.objects.get(id=serialized.data['id'])
 
-            if request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'public':
+            if request.data['visibility'] == 'public':
                 post.isPublic = True
                 post.isProtected = False
                 post.isPersonal = False
                 post.isHidden = False
                 post.isPrivate = False
 
-            elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'protected':
+            elif request.data['visibility'] == 'protected':
                 post.isProtected = True
                 post.isPublic = False
                 post.isPersonal = False
                 post.isHidden = False
                 post.isPrivate = False
 
-            elif request.data['visibility'] in POST_VISIBILITY_TYPE and request.data['visibility'] == 'private':
+            elif request.data['visibility'] == 'private':
                 post.isPrivate = True
                 post.isPublic = False
                 post.isProtected = False
                 post.isPersonal = False
                 post.isHidden = False
+            else:
+                post.isPublic = True
+                post.isProtected = False
+                post.isPersonal = False
+                post.isHidden = False
+                post.isPrivate = False
 
             post.save()
 
