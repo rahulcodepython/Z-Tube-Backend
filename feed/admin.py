@@ -4,11 +4,8 @@ from . import models
 
 @admin.register(models.Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ['id', 'caption']
-
-
-class PostConfigAdmin(admin.ModelAdmin):
-    list_display = ['id', 'uploader']
+    list_display = ['id', 'caption', 'uploader', 'isPublic', 'isProtected', 'isPersonal',
+                    'isHidden', 'isPrivate', 'likeNo', 'allowComments', 'commentNo']
 
 
 @admin.register(models.PostRecord)
