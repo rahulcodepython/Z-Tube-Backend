@@ -168,17 +168,39 @@ class ViewUserAllPostsView(views.APIView):
                 postsList = []
 
                 for post in posts:
-                    serialized_post = serializers.PostSerializer(post)
-                    postsList.append({
-                        **serialized_post.data,
-                        "self": True if request.user == user else False,
-                        "user_reaction": models.PostReaction.objects.get(post=post, user=request.user).reaction if models.PostReaction.objects.filter(post=post, user=request.user).exists() else None
-                    })
+                    is_visible = False
+
+                    if request.user == user:
+                        is_visible = True
+
+                    elif post.isPublic:
+                        is_visible = True
+
+                    elif post.isProtected:
+                        profile = auth_models.Profile.objects.get(user=user)
+                        if request.user in profile.Connections.all():
+                            is_visible = True
+
+                    elif post.isHidden:
+                        if request.user not in post.hiddenFrom.all():
+                            is_visible = True
+
+                    elif post.isPrivate:
+                        if request.user in post.visibleTo.all():
+                            is_visible = True
+
+                    if is_visible:
+                        serialized_post = serializers.PostSerializer(post)
+                        postsList.append({
+                            **serialized_post.data,
+                            "self": True if request.user == user else False,
+                            "user_reaction": models.PostReaction.objects.get(post=post, user=request.user).reaction if models.PostReaction.objects.filter(post=post, user=request.user).exists() else None
+                        })
 
                 return response.Response(postsList, status=status.HTTP_200_OK)
 
             else:
-                return response.Response({"error": "No Post Here"}, status=status.HTTP_204_NO_CONTENT)
+                return response.Response([], status=status.HTTP_204_NO_CONTENT)
 
         except Exception as e:
             return response.Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)

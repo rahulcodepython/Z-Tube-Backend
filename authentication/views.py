@@ -130,7 +130,7 @@ class ProfileView(views.APIView):
 class ConnectView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, username, format=None):
+    def post(self, request, username, format=None):
         try:
             user = User.objects.get(username=username) if User.objects.filter(
                 username=username).exists() else None

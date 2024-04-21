@@ -15,13 +15,16 @@ class Post(models.Model):
                       blank=True, default=list, editable=True)
     media = ArrayField(models.CharField(max_length=5000),
                        default=list, editable=True)
-    timestamp = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    timestamp = models.DateTimeField(
+        auto_now_add=True, null=True, blank=True, editable=False)
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     createdAt = models.CharField(max_length=500)
-    isPublic = models.BooleanField(default=False)
-    isProtected = models.BooleanField(default=False)
-    isPersonal = models.BooleanField(default=False)
+    isPublic = models.BooleanField(default=False)  # Only for all
+    isProtected = models.BooleanField(default=False)  # Only for followers
+    isPersonal = models.BooleanField(default=False)  # Only for me
+    # Visible to all except those who are in hiddenFrom list
     isHidden = models.BooleanField(default=False)
+    # Visible to only those who are in visibleTo list
     isPrivate = models.BooleanField(default=False)
     visibleTo = models.ManyToManyField(
         User, related_name='visible_to', blank=True)
@@ -36,6 +39,7 @@ class Post(models.Model):
     class Meta:
         verbose_name = 'Post'
         verbose_name_plural = 'Post'
+        ordering = ['-timestamp']
 
     def __str__(self) -> str:
         return f"{self.id}"
@@ -83,6 +87,7 @@ class Comment(models.Model):
     class Meta:
         verbose_name = 'Comment'
         verbose_name_plural = 'Comments'
+        ordering = ['-timestamp']
 
     def __str__(self) -> str:
         return f"{self.id}"

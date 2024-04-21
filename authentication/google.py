@@ -71,8 +71,5 @@ def get_user_data(validated_data):
         user=models.User.objects.get(email=user_data['email']),
         tags=[]
     )
-    models.ProfileConfig.objects.create(
-        user=models.User.objects.get(email=user_data['email'])
-    )
 
     return user_data['email']
