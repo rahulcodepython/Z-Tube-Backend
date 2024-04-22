@@ -192,6 +192,15 @@ class ViewUserAllPostsView(views.APIView):
             if user is None:
                 return response.Response({}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
+            profile = auth_models.Profile.objects.get(user=user)
+
+            if (
+                profile.isLocked
+                and request.user not in profile.Connections.all()
+                and request.user != user
+            ):
+                return response.Response([], status=status.HTTP_204_NO_CONTENT)
+
             if models.PostRecord.objects.filter(user=user).exists():
                 postRecord = models.PostRecord.objects.get(user=user)
                 posts = postRecord.posts.all().order_by("-timestamp")

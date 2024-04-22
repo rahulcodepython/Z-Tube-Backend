@@ -70,7 +70,7 @@ class ProfileView(views.APIView):
 
             profile = models.Profile.objects.get(user=user)
 
-            if profile.isLocked:
+            if profile.isLocked and request.user not in profile.Connections.all() and request.user != user:
                 return response.Response({"msg": "This account is locked."}, status=status.HTTP_403_FORBIDDEN)
 
             serialized_data_profile = serializers.ProfileSerializer(profile)
