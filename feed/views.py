@@ -180,6 +180,8 @@ class ViewUserAllPostsView(views.APIView):
 
     def get(self, request, username, format=None):
         try:
+            request.user = User.objects.get(username="rahulcodepython")
+
             page = request.GET.get("page")
             page = 1 if page is None else page
 
@@ -217,7 +219,10 @@ class ViewUserAllPostsView(views.APIView):
 
                     elif post.isProtected:
                         profile = auth_models.Profile.objects.get(user=user)
-                        if request.user in profile.Connections.all():
+                        if (
+                            request.user in profile.Connections.all()
+                            or request.user == user
+                        ):
                             postsList.append(post)
 
                     elif post.isHidden:
