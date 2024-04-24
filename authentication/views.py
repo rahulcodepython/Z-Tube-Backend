@@ -165,7 +165,7 @@ class ConnectView(views.APIView):
             if request.user in profile.Connections.all():
                 profile.Connections.remove(request.user)
 
-            profile.followers += 1
+            profile.followers -= 1
             profile.save()
 
             return response.Response({"success": "You are now disconnected."}, status=status.HTTP_202_ACCEPTED)
