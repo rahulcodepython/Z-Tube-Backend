@@ -13,15 +13,27 @@ POST_VISIBILITY_TYPE = ["public", "protected", "private"]
 POST_PAGINATION_DEFAULT_LIMIT = 3
 
 
+def response_ok(e):
+    return response.Response({"success": str(e)}, status=status.HTTP_200_OK)
+
+
+def response_bad_request(e):
+    return response.Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def response_unauthorized_access():
+    return response.Response({"error": "Unauthorized access"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 class CreatePostView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, format=None):
+    def post(self, request):
         try:
             serialized = serializers.PostSerializer(data=request.data)
 
             if not serialized.is_valid():
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"error": serialized.errors}, status=status.HTTP_400_BAD_REQUEST)
 
             serialized.save(uploader=request.user)
 
@@ -67,26 +79,25 @@ class CreatePostView(views.APIView):
 
             serialized_post = serializers.PostSerializer(post)
 
-            profile = auth_models.Profile.objects.get(user=request.user)
-            profile.posts += 1
-            profile.save()
+            request.user.posts += 1
+            request.user.save()
 
             return response.Response(
                 {
                     "content": {**serialized_post.data, "self": True},
-                    "posts": profile.posts,
+                    "posts": request.user.posts,
                 },
                 status=status.HTTP_201_CREATED,
             )
 
         except Exception as e:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+            return response_bad_request(e)
 
 
 class EditPostView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def patch(self, request, postid, format=None):
+    def patch(self, request, postid):
         try:
             post = (
                 models.Post.objects.get(id=postid)
@@ -95,20 +106,20 @@ class EditPostView(views.APIView):
             )
 
             if post is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_bad_request("No such post is there")
 
             serialized_post = serializers.PostSerializer(
                 instance=post, data=request.data
             )
 
             if not serialized_post.is_valid():
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response({"error": serialized_post.errors}, status=status.HTTP_400_BAD_REQUEST)
 
             serialized_post.save()
 
             if (
-                request.data["visibility"] in POST_VISIBILITY_TYPE
-                and request.data["visibility"] == "public"
+                    request.data["visibility"] in POST_VISIBILITY_TYPE
+                    and request.data["visibility"] == "public"
             ):
                 post.isPublic = True
                 post.isProtected = False
@@ -117,8 +128,8 @@ class EditPostView(views.APIView):
                 post.isPrivate = False
 
             elif (
-                request.data["visibility"] in POST_VISIBILITY_TYPE
-                and request.data["visibility"] == "protected"
+                    request.data["visibility"] in POST_VISIBILITY_TYPE
+                    and request.data["visibility"] == "protected"
             ):
                 post.isProtected = True
                 post.isPublic = False
@@ -127,8 +138,8 @@ class EditPostView(views.APIView):
                 post.isPrivate = False
 
             elif (
-                request.data["visibility"] in POST_VISIBILITY_TYPE
-                and request.data["visibility"] == "private"
+                    request.data["visibility"] in POST_VISIBILITY_TYPE
+                    and request.data["visibility"] == "private"
             ):
                 post.isPrivate = True
                 post.isPublic = False
@@ -140,12 +151,12 @@ class EditPostView(views.APIView):
 
             serialized_post = serializers.PostSerializer(post)
 
-            return response.Response(
-                {**serialized_post.data, "self": True}, status=status.HTTP_201_CREATED
-            )
+            return response.Response({
+                **serialized_post.data, "self": True
+            }, status=status.HTTP_201_CREATED)
 
-        except Exception:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response_bad_request(e)
 
     def delete(self, request, postid, format=None):
         try:
@@ -156,29 +167,28 @@ class EditPostView(views.APIView):
             )
 
             if post is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_bad_request("No such post is there")
 
             if post.uploader != request.user:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_unauthorized_access()
 
             post.delete()
 
-            profile = auth_models.Profile.objects.get(user=request.user)
-            profile.posts -= 1
-            profile.save()
+            request.user.posts -= 1
+            request.user.save()
 
             return response.Response(
-                {"posts": profile.posts}, status=status.HTTP_200_OK
+                {"posts": request.user.posts}, status=status.HTTP_200_OK
             )
 
-        except Exception:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response_bad_request(e)
 
 
 class ViewUserAllPostsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, username, format=None):
+    def get(self, request, username):
         try:
             request.user = User.objects.get(username="rahulcodepython")
 
@@ -194,12 +204,10 @@ class ViewUserAllPostsView(views.APIView):
             if user is None:
                 return response.Response({}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-            profile = auth_models.Profile.objects.get(user=user)
-
             if (
-                profile.isLocked
-                and request.user not in profile.Connections.all()
-                and request.user != user
+                    user.isLocked
+                    and request.user not in user.Connections.all()
+                    and request.user != user
             ):
                 return response.Response([], status=status.HTTP_204_NO_CONTENT)
 
@@ -218,10 +226,9 @@ class ViewUserAllPostsView(views.APIView):
                         postsList.append(post)
 
                     elif post.isProtected:
-                        profile = auth_models.Profile.objects.get(user=user)
                         if (
-                            request.user in profile.Connections.all()
-                            or request.user == user
+                                request.user in user.Connections.all()
+                                or request.user == user
                         ):
                             postsList.append(post)
 
@@ -277,14 +284,14 @@ class ViewUserAllPostsView(views.APIView):
             else:
                 return response.Response([], status=status.HTTP_204_NO_CONTENT)
 
-        except Exception:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response_bad_request(e)
 
 
 class CreateCommentView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, postid, format=None):
+    def post(self, request, postid):
         try:
             post = (
                 models.Post.objects.get(id=postid)
@@ -293,16 +300,16 @@ class CreateCommentView(views.APIView):
             )
 
             if post is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_bad_request("No such post is there")
 
             if not post.allowComments:
-                return response.Response({}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                return response.Response({"error": "Comments are not allowed on this post."}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
             comment_id = f"{postid}+{uuid.uuid4()}"
             master = (
                 models.Comment.objects.get(id=request.data["master"])
                 if "master" in request.data
-                and models.Comment.objects.filter(id=request.data["master"]).exists()
+                   and models.Comment.objects.filter(id=request.data["master"]).exists()
                 else None
             )
 
@@ -339,8 +346,8 @@ class CreateCommentView(views.APIView):
                 status=status.HTTP_201_CREATED,
             )
 
-        except Exception:
-            return response.Response({}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        except Exception as e:
+            return response_bad_request(e)
 
 
 class ViewCommentView(views.APIView):
@@ -355,7 +362,7 @@ class ViewCommentView(views.APIView):
             )
 
             if post is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_bad_request("No such post is there")
 
             comment_record = (
                 models.CommentRecord.objects.get(post=post)
@@ -392,14 +399,14 @@ class ViewCommentView(views.APIView):
 
             return response.Response(commentList, status=status.HTTP_200_OK)
 
-        except Exception:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response_bad_request(e)
 
 
 class CommentEditView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, commentid, format=None):
+    def post(self, request, commentid):
         try:
             comment = (
                 models.Comment.objects.get(id=commentid)
@@ -408,10 +415,7 @@ class CommentEditView(views.APIView):
             )
 
             if comment is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
-
-            if request.data["comment"] is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_bad_request("No such comment is there.")
 
             comment.comment = request.data["comment"]
             comment.save()
@@ -421,8 +425,8 @@ class CommentEditView(views.APIView):
             return response.Response(
                 {**serialized.data, "self": True}, status=status.HTTP_200_OK
             )
-        except Exception:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response_bad_request(e)
 
     def delete(self, request, commentid, format=None):
         try:
@@ -433,10 +437,10 @@ class CommentEditView(views.APIView):
             )
 
             if comment is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_bad_request("No such comment is there.")
 
             if comment.uploader != request.user:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_unauthorized_access()
 
             comment.delete()
 
@@ -454,7 +458,7 @@ class CommentEditView(views.APIView):
 class AddPostReactionView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, postid, reaction, format=None):
+    def post(self, request, postid, reaction):
         try:
             post = (
                 models.Post.objects.get(id=postid)
@@ -463,10 +467,10 @@ class AddPostReactionView(views.APIView):
             )
 
             if post is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_bad_request("No such post is there")
 
             if models.PostReaction.objects.filter(
-                post=post, user=request.user
+                    post=post, user=request.user
             ).exists():
                 reaction_record = models.PostReaction.objects.get(
                     post=post, user=request.user
@@ -484,10 +488,10 @@ class AddPostReactionView(views.APIView):
 
             return response.Response({"likeNo": post.likeNo}, status=status.HTTP_200_OK)
 
-        except Exception:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response_bad_request(e)
 
-    def delete(self, request, postid, reaction, format=None):
+    def delete(self, request, postid, reaction):
         try:
             post = (
                 models.Post.objects.get(id=postid)
@@ -496,10 +500,10 @@ class AddPostReactionView(views.APIView):
             )
 
             if post is None:
-                return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+                return response_bad_request("No such post is there")
 
             if models.PostReaction.objects.filter(
-                post=post, user=request.user
+                    post=post, user=request.user
             ).exists():
                 post_reaction = models.PostReaction.objects.get(
                     post=post, user=request.user
@@ -510,5 +514,5 @@ class AddPostReactionView(views.APIView):
 
             return response.Response({"likeNo": post.likeNo}, status=status.HTTP_200_OK)
 
-        except Exception:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response_bad_request(e)
