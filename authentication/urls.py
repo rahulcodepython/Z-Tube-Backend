@@ -1,12 +1,40 @@
-from django.urls import path, include
+from rest_framework_simplejwt.views import TokenRefreshView
+from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('dj/', include('djoser.urls')),
-    path('token/', include('djoser.urls.jwt')),
-    path('google/', views.GoogleAuthView.as_view()),
-    path('me/', views.UserDataView.as_view()),
-    path('find/username/', views.FindUsernameView.as_view()),
-    path('profile/<str:username>/', views.ProfileView.as_view()),
-    path('connect/<str:username>/', views.ConnectView.as_view()),
+    # Authentication
+    path("users/me/", views.UserView.as_view()),
+    path("users/me/user/", views.UserPeekView.as_view()),
+    path("users/user/<str:username>/", views.OtherUserView.as_view()),
+    path("users/activation/", views.ActivateUserView.as_view()),
+    path("users/resend_activation/", views.ResendActivateUserView.as_view()),
+    path("users/jwt/create/", views.CreateJWTView.as_view()),
+    path("users/jwt/refresh/", TokenRefreshView.as_view()),
+    path("users/set_password/", views.ResetUserPasswordView.as_view()),
+    path("users/set_email/", views.ResetUserEmailView.as_view()),
+    path("users/update_email/", views.UpdateEmailView.as_view()),
+    path(
+        "github/code/",
+        views.GithubAuthRedirectView.as_view(),
+        name="github_auth_redirect",
+    ),
+    path(
+        "github/authenticate/",
+        views.GithubAuthenticateView.as_view(),
+        name="github_authenticate",
+    ),
+    path(
+        "google/code/",
+        views.GoogleAuthRedirectView.as_view(),
+        name="google_auth_redirect",
+    ),
+    path(
+        "google/authenticate/",
+        views.GoogleAuthenticateView.as_view(),
+        name="google_authenticate",
+    ),
+    # Others Actions
+    path("find/username/", views.FindUsernameView.as_view()),
+    path("connect/<str:username>/", views.ConnectView.as_view()),
 ]
