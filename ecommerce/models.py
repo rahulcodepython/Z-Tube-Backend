@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 import uuid
-from django.db.models import F
 
 User = get_user_model()
 
@@ -59,7 +58,12 @@ class Product(models.Model):
     description = models.TextField()
     price = models.IntegerField(default=0)
     offer = models.IntegerField(default=0)
-    category = models.ForeignKey(SubCategory, on_delete=models.CASCADE)
+    category = models.ForeignKey(
+        Category, on_delete=models.CASCADE, related_name="product_category"
+    )
+    subcategory = models.ForeignKey(
+        SubCategory, on_delete=models.CASCADE, related_name="product_subcategory"
+    )
     images = ArrayField(
         models.CharField(max_length=100),
         size=4,

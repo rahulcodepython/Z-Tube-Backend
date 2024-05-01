@@ -1,4 +1,3 @@
-# from djoser.social.views import ProviderAuthView
 from rest_framework import views, response, permissions, status
 from . import serializers, models, google, jwttoken
 from django.contrib.auth import get_user_model
