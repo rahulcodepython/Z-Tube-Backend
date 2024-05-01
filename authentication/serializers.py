@@ -1,55 +1,48 @@
-from djoser.serializers import UserSerializer, UserCreateSerializer
+from rest_framework.validators import UniqueValidator
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from . import create_username, models
-from djoser.conf import settings
+from django.conf import settings
 
 User = get_user_model()
 
 
-class UserSerializer(UserSerializer):
-    is_superuser = serializers.BooleanField(read_only=True)
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'image', 'banner', 'tags', 'posts',
+                  'followers', 'following', 'is_verified', 'is_locked', 'is_superuser']
+
+
+class UserPeekSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'image', 'is_superuser']
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
+    email = serializers.EmailField(
+        required=True, validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    username = serializers.CharField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = tuple(User.REQUIRED_FIELDS) + \
-            (settings.LOGIN_FIELD, "is_superuser")
+        fields = list(User.REQUIRED_FIELDS) + [settings.AUTH_CONFIG['LOGIN_FIELD'], "password"]
 
-
-class GoogleAuthSerializer(serializers.Serializer):
-    code = serializers.CharField(required=False)
-    error = serializers.CharField(required=False)
-
-
-class UserCreateSerializer(UserCreateSerializer):
     def create(self, validated_data):
         user = super().create(validated_data)
-        user.username = create_username.create_username(validated_data['email'].split(
-            '@')[0])
+        user.set_password(validated_data["password"])
         user.save()
-        models.Profile.objects.create(user=user)
-        models.ProfileConfig.objects.create(user=user)
         return user
 
 
-class UserDataSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-
+class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'is_superuser', 'image']
+        fields = ['username', 'first_name', 'last_name', 'bio', 'image', 'banner', 'tags', 'is_locked']
 
-    def get_image(self, obj):
-        return models.Profile.objects.get(
-            user=User.objects.get(email=obj.email)).image
-
-
-class ProfileSerializer(serializers.ModelSerializer):
-    image = serializers.URLField()
-    banner = serializers.URLField()
-
-    class Meta:
-        model = models.Profile
-        fields = ["bio", "image", "banner", "tags",
-                  "posts", "followers", "followings", "isLocked", "isVerified"]
-        read_only_fields = ["posts", "followers", "followings", "isVerified"]
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
