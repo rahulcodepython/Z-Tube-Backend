@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     "ecommerce",
     # Packages
     "rest_framework",
-    "djoser",
+    "rest_framework_simplejwt",
+    "mail_templated",
     "corsheaders",
 ]
 
@@ -73,6 +74,7 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 # Auth User Model
 AUTH_USER_MODEL = "authentication.User"
+AUTH_CONFIG = {"LOGIN_FIELD": "username"}
 
 # Database
 DATABASES = {
@@ -144,6 +146,8 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
     "AUTH_HEADER_TYPES": ("JWT",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
 }
 
 # Email Setup
@@ -157,32 +161,22 @@ DOMAIN = os.environ.get("BASE_APP_URL")
 SITE_NAME = os.environ.get("FRONTEND_SITE_NAME")
 
 
-# Djoser Settings
-DJOSER = {
-    "LOGIN_FIELD": "email",
-    "SEND_ACTIVATION_EMAIL": True,
-    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
-    "PASSWORD_RESET_CONFIRM_URL": "password-reset-confirm/{uid}/{token}",
-    "ACTIVATION_URL": "auth/verify/email/{uid}/{token}",
-    "TOKEN_MODEL": None,
-    "EMAIL": {
-        "activation": "authentication.email.ActivationEmail",
-    },
-    "SERIALIZERS": {
-        "user": "authentication.serializers.UserSerializer",
-        "current_user": "authentication.serializers.UserSerializer",
-        "user_create": "authentication.serializers.UserCreateSerializer",
-    },
-}
-
 # OAuth Settings
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
 BASE_API_URL = os.environ.get("BASE_API_URL")
-GOOGLE_OAUTH2_CLIENT_ID = os.environ.get("GOOGLE_OAUTH2_CLIENT_ID")
-GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH2_CLIENT_SECRET")
+
+# GitHub OAuth details
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+GITHUB_REDIRECT_URI = os.getenv('GITHUB_REDIRECT_URI')
+
+# Google OAuth details
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI')
 
 SESSION_COOKIE_SECURE = True if os.environ.get("DEBUG") == "False" else False
 SECURE_SSL_REDIRECT = True if os.environ.get("DEBUG") == "False" else False
