@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from . import models
-from authentication import models as auth_model
 
 
 class PostSerializer(serializers.ModelSerializer):

@@ -1,6 +1,5 @@
 from rest_framework import views, response, status, permissions
 from . import models, serializers
-from authentication import models as auth_models
 from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
 import uuid
@@ -68,14 +67,9 @@ class CreatePostView(views.APIView):
 
             post.save()
 
-            if models.PostRecord.objects.filter(user=request.user).exists():
-                record = models.PostRecord.objects.get(user=request.user)
-                record.posts.add(post)
-                record.save()
-            else:
-                record = models.PostRecord.objects.create(user=request.user)
-                record.posts.add(post)
-                record.save()
+            record, created = models.PostRecord.objects.get_or_create(user=request.user)
+            record.posts.add(post)
+            record.save()
 
             serialized_post = serializers.PostSerializer(post)
 
@@ -190,8 +184,6 @@ class ViewUserAllPostsView(views.APIView):
 
     def get(self, request, username):
         try:
-            request.user = User.objects.get(username="rahulcodepython")
-
             page = request.GET.get("page")
             page = 1 if page is None else page
 
@@ -211,78 +203,77 @@ class ViewUserAllPostsView(views.APIView):
             ):
                 return response.Response([], status=status.HTTP_204_NO_CONTENT)
 
-            if models.PostRecord.objects.filter(user=user).exists():
-                postRecord = models.PostRecord.objects.get(user=user)
-                posts = postRecord.posts.all().order_by("-timestamp")
+            if not models.PostRecord.objects.filter(user=user).exists():
+                return response.Response([], status=status.HTTP_204_NO_CONTENT)
 
-                postsList: list = []
-                serializedPostsList: list = []
+            postRecord = models.PostRecord.objects.get(user=user)
+            posts = postRecord.posts.all().order_by("-timestamp")
 
-                for post in posts:
-                    if post.isPublic:
+            postsList: list = []
+            serializedPostsList: list = []
+
+            for post in posts:
+                if post.isPublic:
+                    postsList.append(post)
+
+                elif post.isPersonal and request.user == user:
+                    postsList.append(post)
+
+                elif post.isProtected:
+                    if (
+                            request.user in user.Connections.all()
+                            or request.user == user
+                    ):
                         postsList.append(post)
 
-                    elif post.isPersonal and request.user == user:
+                elif post.isHidden:
+                    if request.user not in post.hiddenFrom.all():
                         postsList.append(post)
 
-                    elif post.isProtected:
-                        if (
-                                request.user in user.Connections.all()
-                                or request.user == user
-                        ):
-                            postsList.append(post)
+                elif post.isPrivate:
+                    if request.user in post.visibleTo.all():
+                        postsList.append(post)
 
-                    elif post.isHidden:
-                        if request.user not in post.hiddenFrom.all():
-                            postsList.append(post)
+            paginator = Paginator(postsList, POST_PAGINATION_DEFAULT_LIMIT)
+            paginated = paginator.page(page)
 
-                    elif post.isPrivate:
-                        if request.user in post.visibleTo.all():
-                            postsList.append(post)
-
-                paginator = Paginator(postsList, POST_PAGINATION_DEFAULT_LIMIT)
-                paginated = paginator.page(page)
-
-                for post in paginated.object_list:
-                    serialized_post = serializers.PostSerializer(post)
-                    serializedPostsList.append(
-                        {
-                            **serialized_post.data,
-                            "self": True if request.user == user else False,
-                            "user_reaction": (
-                                models.PostReaction.objects.get(
-                                    post=post, user=request.user
-                                ).reaction
-                                if models.PostReaction.objects.filter(
-                                    post=post, user=request.user
-                                ).exists()
-                                else None
-                            ),
-                        }
-                    )
-
-                url = f"{os.environ.get('BASE_API_URL')}/feed/posts/{username}/"
-
-                return response.Response(
+            for post in paginated.object_list:
+                serialized_post = serializers.PostSerializer(post)
+                serializedPostsList.append(
                     {
-                        "count": paginator.count,
-                        "next": (
-                            f"{url}?page={paginated.next_page_number()}"
-                            if paginated.has_next()
+                        **serialized_post.data,
+                        "self": True if request.user == user else False,
+                        "user_reaction": (
+                            models.PostReaction.objects.get(
+                                post=post, user=request.user
+                            ).reaction
+                            if models.PostReaction.objects.filter(
+                                post=post, user=request.user
+                            ).exists()
                             else None
                         ),
-                        "previous": (
-                            f"{url}?page={paginated.previous_page_number()}"
-                            if paginated.has_previous()
-                            else None
-                        ),
-                        "results": serializedPostsList,
-                    },
-                    status=status.HTTP_200_OK,
+                    }
                 )
 
-            else:
-                return response.Response([], status=status.HTTP_204_NO_CONTENT)
+            url = f"{os.environ.get('BASE_API_URL')}/feed/posts/{username}/"
+
+            return response.Response(
+                {
+                    "count": paginator.count,
+                    "next": (
+                        f"{url}?page={paginated.next_page_number()}"
+                        if paginated.has_next()
+                        else None
+                    ),
+                    "previous": (
+                        f"{url}?page={paginated.previous_page_number()}"
+                        if paginated.has_previous()
+                        else None
+                    ),
+                    "results": serializedPostsList,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except Exception as e:
             return response_bad_request(e)
@@ -303,7 +294,8 @@ class CreateCommentView(views.APIView):
                 return response_bad_request("No such post is there")
 
             if not post.allowComments:
-                return response.Response({"error": "Comments are not allowed on this post."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                return response.Response({"error": "Comments are not allowed on this post."},
+                                         status=status.HTTP_406_NOT_ACCEPTABLE)
 
             comment_id = f"{postid}+{uuid.uuid4()}"
             master = (
@@ -326,15 +318,9 @@ class CreateCommentView(views.APIView):
             post.save()
 
             if master is None:
-                if models.CommentRecord.objects.filter(post=post).exists():
-                    commentRecord = models.CommentRecord.objects.get(post=post)
-                    commentRecord.comments.add(comment)
-                    commentRecord.save()
-
-                else:
-                    commentRecord = models.CommentRecord.objects.create(post=post)
-                    commentRecord.comments.add(comment)
-                    commentRecord.save()
+                commentRecord, created = models.CommentRecord.objects.get_or_create(post=post)
+                commentRecord.comments.add(comment)
+                commentRecord.save()
 
             comment_serialized = serializers.CommentSerializer(comment)
 
@@ -451,8 +437,8 @@ class CommentEditView(views.APIView):
                 {"commentNo": comment.post.commentNo}, status=status.HTTP_200_OK
             )
 
-        except Exception:
-            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response_bad_request(e)
 
 
 class AddPostReactionView(views.APIView):
