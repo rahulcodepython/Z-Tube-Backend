@@ -78,7 +78,19 @@ class CreatePostView(views.APIView):
 
             return response.Response(
                 {
-                    "content": {**serialized_post.data, "self": True},
+                    "content": {
+                        **serialized_post.data,
+                        "self": True,
+                        "user_reaction": (
+                            models.PostReaction.objects.get(
+                                post=post, user=request.user
+                            ).reaction
+                            if models.PostReaction.objects.filter(
+                                post=post, user=request.user
+                            ).exists()
+                            else None
+                        ),
+                    },
                     "posts": request.user.posts,
                 },
                 status=status.HTTP_201_CREATED,
@@ -146,7 +158,17 @@ class EditPostView(views.APIView):
             serialized_post = serializers.PostSerializer(post)
 
             return response.Response({
-                **serialized_post.data, "self": True
+                **serialized_post.data,
+                "self": True,
+                "user_reaction": (
+                    models.PostReaction.objects.get(
+                        post=post, user=request.user
+                    ).reaction
+                    if models.PostReaction.objects.filter(
+                        post=post, user=request.user
+                    ).exists()
+                    else None
+                ),
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
