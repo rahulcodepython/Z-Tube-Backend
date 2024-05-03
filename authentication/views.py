@@ -77,7 +77,8 @@ class UserView(views.APIView):
         try:
             return response.Response({
                 **serializers.UserSerializer(request.user).data,
-                "self": True
+                "self": True,
+                "isFriend": False
             },status=status.HTTP_200_OK) if check_authenticated_user(request.user) else response.Response({
                 "error": "You are not authenticated yet."
             },status=status.HTTP_400_BAD_REQUEST)
@@ -157,7 +158,8 @@ class OtherUserView(views.APIView):
 
             return response.Response({
                 **serializers.UserSerializer(User.objects.get(username=username)).data,
-                "self": False
+                "self": False,
+                "isFriend": request.user in User.objects.get(username=username).connections.objects.all()
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -545,7 +547,7 @@ class ConnectView(views.APIView):
                 return response_bad_request("No such user is found")
 
             if request.user not in user.Connections.all():
-                user.Connections.add(request.user)
+                user.connections.add(request.user)
 
             user.followers += 1
             user.save()
@@ -564,7 +566,7 @@ class ConnectView(views.APIView):
                 return response_bad_request("No such user is found")
 
             if request.user not in user.Connections.all():
-                user.Connections.add(request.user)
+                user.connections.add(request.user)
 
             user.followers -= 1
             user.save()

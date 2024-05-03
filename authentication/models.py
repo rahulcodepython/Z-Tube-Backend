@@ -27,7 +27,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     posts = models.IntegerField(default=0)
     followers = models.IntegerField(default=0)
     followings = models.IntegerField(default=0)
-    Connections = models.ManyToManyField(
+    connections = models.ManyToManyField(
         "self", related_name='Connections', blank=True)
     isVerified = models.BooleanField(default=False)
     isLocked = models.BooleanField(default=False)
