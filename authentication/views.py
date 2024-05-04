@@ -79,9 +79,9 @@ class UserView(views.APIView):
                 **serializers.UserSerializer(request.user).data,
                 "self": True,
                 "isFriend": False
-            },status=status.HTTP_200_OK) if check_authenticated_user(request.user) else response.Response({
+            }, status=status.HTTP_200_OK) if check_authenticated_user(request.user) else response.Response({
                 "error": "You are not authenticated yet."
-            },status=status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             return response_bad_request(e)
@@ -131,7 +131,17 @@ class UserView(views.APIView):
 
             serialized_data.save()
 
-            return response.Response({"success": "Your data is updated."}, status=status.HTTP_202_ACCEPTED)
+            return response.Response({
+                "success": "Your data is updated.",
+                "content": {
+                    "user": serializers.UserPeekSerializer(request.user).data,
+                    "profile": {
+                        **serializers.UserSerializer(request.user).data,
+                        "self": True,
+                        "isFriend": False
+                    }
+                }
+            }, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
             return response_bad_request(e)

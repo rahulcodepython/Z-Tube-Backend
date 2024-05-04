@@ -14,8 +14,8 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ['id', 'caption', 'tags', 'media', 'uploader', 'createdAt', 'isPublic', 'isProtected', 'isPersonal',
                   'isHidden', 'isPrivate', 'likeNo', 'viewsNo', 'share', 'allowComments', 'commentNo']
 
-        def get_uploader(self, obj):
-            return auth_serializers.UserPeekSerializer(obj.uploader).data
+    def get_uploader(self, obj):
+        return auth_serializers.UserPeekSerializer(obj.uploader).data
 
     def update(self, instance, validated_data):
         return super().update(instance, validated_data)

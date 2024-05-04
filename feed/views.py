@@ -220,7 +220,7 @@ class ViewUserAllPostsView(views.APIView):
 
             if (
                     user.isLocked
-                    and request.user not in user.Connections.all()
+                    and request.user not in user.connections.all()
                     and request.user != user
             ):
                 return response.Response([], status=status.HTTP_204_NO_CONTENT)
@@ -243,7 +243,7 @@ class ViewUserAllPostsView(views.APIView):
 
                 elif post.isProtected:
                     if (
-                            request.user in user.Connections.all()
+                            request.user in user.connections.all()
                             or request.user == user
                     ):
                         postsList.append(post)
