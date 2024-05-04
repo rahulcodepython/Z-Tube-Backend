@@ -14,8 +14,8 @@ class UserAdmin(admin.ModelAdmin):
         "email",
         "is_active",
         "is_superuser",
-        "is_verified",
-        "is_locked",
+        "isVerified",
+        "isLocked",
     ]
 
 

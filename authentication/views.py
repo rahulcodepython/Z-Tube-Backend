@@ -26,8 +26,8 @@ def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
     return {
-        "refresh": str(refresh),
         "access": str(refresh.access_token),
+        "refresh": str(refresh),
     }
 
 
@@ -546,7 +546,7 @@ class ConnectView(views.APIView):
             if user is None:
                 return response_bad_request("No such user is found")
 
-            if request.user not in user.Connections.all():
+            if request.user not in user.connections.all():
                 user.connections.add(request.user)
 
             user.followers += 1
@@ -565,7 +565,7 @@ class ConnectView(views.APIView):
             if user is None:
                 return response_bad_request("No such user is found")
 
-            if request.user not in user.Connections.all():
+            if request.user not in user.connections.all():
                 user.connections.add(request.user)
 
             user.followers -= 1

@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'image', 'banner', 'tags', 'posts',
-                  'followers', 'following', 'is_verified', 'is_locked', 'is_superuser']
+                  'followers', 'followings', 'isVerified', 'isLocked', 'is_superuser']
 
 
 class UserPeekSerializer(serializers.ModelSerializer):
@@ -42,7 +42,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'bio', 'image', 'banner', 'tags', 'is_locked']
+        fields = ['username', 'first_name', 'last_name', 'bio', 'image', 'banner', 'tags', 'isLocked']
 
     def update(self, instance, validated_data):
         return super().update(instance, validated_data)

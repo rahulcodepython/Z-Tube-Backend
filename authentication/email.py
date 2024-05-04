@@ -7,7 +7,7 @@ def activation_email(uid, token, email, username):
     subject = "Verify Your Email Address - Action Required"
     html_body = render_to_string("activation.html", {
         'username': username,
-        'company_name': settings.COMPANY_NAME,
+        'company_name': settings.SITE_NAME,
         'host_email': settings.EMAIL_HOST_USER,
         'uid': uid,
         'token': token,
@@ -23,7 +23,7 @@ def reset_password_confirmation(uid, token, email, username):
     subject = "Reset Password Confirmation - Action Required"
     html_body = render_to_string("reset_password_confirmation.html", {
         'username': username,
-        'company_name': settings.COMPANY_NAME,
+        'company_name': settings.SITE_NAME,
         'host_email': settings.EMAIL_HOST_USER,
         'uid': uid,
         'token': token,
@@ -39,7 +39,7 @@ def reset_email_confirmation(uid, token, email, username):
     subject = "Reset Email Confirmation - Action Required"
     html_body = render_to_string("reset_email_confirmation.html", {
         'username': username,
-        'company_name': settings.COMPANY_NAME,
+        'company_name': settings.SITE_NAME,
         'host_email': settings.EMAIL_HOST_USER,
         'uid': uid,
         'token': token,
