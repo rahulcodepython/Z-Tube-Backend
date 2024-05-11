@@ -14,7 +14,6 @@ urlpatterns = [
     path('users/jwt/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path("users/set_password/", views.ResetUserPasswordView.as_view()),
     path("users/set_email/", views.ResetUserEmailView.as_view()),
-    path("users/update_email/", views.UpdateEmailView.as_view()),
     path(
         "github/code/",
         views.GithubAuthRedirectView.as_view(),
