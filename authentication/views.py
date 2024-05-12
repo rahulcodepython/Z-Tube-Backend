@@ -2,6 +2,7 @@ from rest_framework import views, response, status, permissions
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from . import serializers, email, models
+from django.contrib.auth import logout
 from django.conf import settings
 import requests
 import random
@@ -71,7 +72,7 @@ class UserView(views.APIView):
             self.create_token()
         return token
 
-    def generate_unique_username(given_email):
+    def generate_unique_username(self, given_email):
         return given_email.split("@")[0]
 
     def get(self, request):
@@ -185,6 +186,7 @@ class UserView(views.APIView):
                 return response_unauthorized_access()
 
             request.user.delete()
+            logout(request)
             return response.Response(
                 {"success": "Your account is deleted."}, status=status.HTTP_202_ACCEPTED
             )
