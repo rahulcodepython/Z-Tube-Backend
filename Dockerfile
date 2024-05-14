@@ -1,34 +1,31 @@
-# The first instruction is what image we want to base our container on
-# We Use an official Python runtime as a parent image
 FROM python:latest
 
-# The enviroment variable ensures that the python output is set straight
-# to the terminal with out buffering it first
-
-# RUN apt-get update -y
-# RUN apt-get install software-properties-common -y
-# RUN add-apt-repository ppa:deadsnakes/ppa
-# RUN apt-get update -y
-# RUN apt-get install python3.12 -y
-
+ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# create root directory for our project in the container
-RUN mkdir /backend
-
-# Set the working directory to /music_service
 WORKDIR /backend
 
-# Copy the current directory contents into the container at /music_service
-COPY authentication /backend/authentication
-COPY backend /backend/backend
-COPY feed /backend/feed
-COPY templates /backend/templates
-COPY manage.py /backend/manage.py
-COPY requirements.txt /backend/requirements.txt
-COPY .env /backend/.env
+# RUN apt-get update \
+#     && apt-get install -y --no-install-recommends \
+#     build-essential \
+#     libpq-dev \
+#     && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt /backend/
 
-RUN python3 -m pip install --upgrade pip
-
-# Install any needed packages specified in requirements.txt
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+
+COPY . /backend/
+# COPY authentication /backend/
+# COPY backend /backend/
+# COPY ecommerce /backend/
+# COPY feed /backend/
+# COPY templates /backend/
+# COPY .env /backend/
+# COPY manage.py /backend/
+
+RUN python manage.py collectstatic --noinput
+
+EXPOSE 8000
+
+CMD python manage.py runserver 0.0.0.0:8000

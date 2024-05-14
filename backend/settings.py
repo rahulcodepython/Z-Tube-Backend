@@ -20,7 +20,7 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.environ.get("DEBUG") == "True" else False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["192.168.29.122", "*"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -171,12 +171,12 @@ BASE_API_URL = os.environ.get("BASE_API_URL")
 # GitHub OAuth details
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
-GITHUB_REDIRECT_URI = os.getenv('GITHUB_REDIRECT_URI')
+GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI")
 
 # Google OAuth details
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI')
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 
 SESSION_COOKIE_SECURE = True if os.environ.get("DEBUG") == "False" else False
 SECURE_SSL_REDIRECT = True if os.environ.get("DEBUG") == "False" else False
