@@ -55,10 +55,6 @@ def response_bad_request(e):
     return response.Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-def response_ok(e):
-    return response.Response({"success": str(e)}, status=status.HTTP_200_OK)
-
-
 class UserView(views.APIView):
     def create_uid(self) -> int:
         uid: int = create_uid()
@@ -137,10 +133,7 @@ class UserView(views.APIView):
                 username=user.username,
             )
 
-            return response.Response(
-                {"success": "Your account has been creates. At First verify it."},
-                status=status.HTTP_201_CREATED,
-            )
+            return response.Response({}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return response_bad_request(e)
@@ -164,14 +157,11 @@ class UserView(views.APIView):
 
             return response.Response(
                 {
-                    "success": "Your data is updated.",
-                    "content": {
-                        "user": serializers.UserPeekSerializer(request.user).data,
-                        "profile": {
-                            **serializers.UserSerializer(request.user).data,
-                            "self": True,
-                            "isFriend": False,
-                        },
+                    "user": serializers.UserPeekSerializer(request.user).data,
+                    "profile": {
+                        **serializers.UserSerializer(request.user).data,
+                        "self": True,
+                        "isFriend": False,
                     },
                 },
                 status=status.HTTP_202_ACCEPTED,
@@ -187,9 +177,7 @@ class UserView(views.APIView):
 
             request.user.delete()
             logout(request)
-            return response.Response(
-                {"success": "Your account is deleted."}, status=status.HTTP_202_ACCEPTED
-            )
+            return response.Response({}, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
             return response_bad_request(e)
@@ -287,7 +275,7 @@ class ResendActivateUserView(views.APIView):
                 username=user.username,
             )
 
-            return response_ok("Activation link has been sent to your email.")
+            return response.Response({}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return response_bad_request(e)
@@ -353,7 +341,7 @@ class ResetUserPasswordView(views.APIView):
                 username=request.user.username,
             )
 
-            return response_ok("Reset Password link is sent to your mail.")
+            return response.Response({}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response_bad_request(e)
@@ -392,7 +380,7 @@ class ResetUserPasswordView(views.APIView):
 
             reset_password_code.delete()
 
-            return response_ok("Successfully changed the password")
+            return response.Response({}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response_bad_request(e)
@@ -433,7 +421,7 @@ class ResetUserEmailView(views.APIView):
                 username=request.user.username,
             )
 
-            return response_ok("Reset Email link is sent to your email.")
+            return response.Response({}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response_bad_request(e)
@@ -462,7 +450,7 @@ class ResetUserEmailView(views.APIView):
 
             reset_email_code.delete()
 
-            return response_ok("Successfully email is updated.")
+            return response.Response({}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response_bad_request(e)
@@ -666,9 +654,7 @@ class ConnectView(views.APIView):
             user.followers += 1
             user.save()
 
-            return response.Response(
-                {"success": "You are now connected."}, status=status.HTTP_202_ACCEPTED
-            )
+            return response.Response({}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response_bad_request(e)
@@ -690,10 +676,7 @@ class ConnectView(views.APIView):
             user.followers -= 1
             user.save()
 
-            return response.Response(
-                {"success": "You are now disconnected."},
-                status=status.HTTP_202_ACCEPTED,
-            )
+            return response.Response({}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return response_bad_request(e)

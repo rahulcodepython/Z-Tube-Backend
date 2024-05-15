@@ -8,7 +8,6 @@ User = get_user_model()
 
 class Category(models.Model):
     key = models.CharField(max_length=255, unique=True, primary_key=True)
-    name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.key
@@ -16,12 +15,11 @@ class Category(models.Model):
     class Meta:
         verbose_name = "Category"
         verbose_name_plural = "Categories"
-        ordering = ["name"]
+        ordering = ["key"]
 
 
 class SubCategory(models.Model):
     key = models.CharField(max_length=255, unique=True, primary_key=True)
-    name = models.CharField(max_length=255)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -30,7 +28,7 @@ class SubCategory(models.Model):
     class Meta:
         verbose_name = "Sub Category"
         verbose_name_plural = "Sub Categories"
-        ordering = ["name"]
+        ordering = ["key"]
 
 
 class Review(models.Model):
@@ -64,13 +62,15 @@ class Product(models.Model):
     subcategory = models.ForeignKey(
         SubCategory, on_delete=models.CASCADE, related_name="product_subcategory"
     )
+    uploader = models.ForeignKey(User, on_delete=models.CASCADE)
     images = ArrayField(
-        models.CharField(max_length=100),
+        models.CharField(max_length=1000),
         size=4,
         blank=True,
         default=list,
         editable=True,
     )
+    availibile_quantity = models.IntegerField(default=0)
     quanity = models.IntegerField(default=0)
     total_reviewer = models.IntegerField(default=0)
     rating = models.IntegerField(default=0)

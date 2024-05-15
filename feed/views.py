@@ -12,16 +12,14 @@ POST_VISIBILITY_TYPE = ["public", "protected", "private"]
 POST_PAGINATION_DEFAULT_LIMIT = 3
 
 
-def response_ok(e):
-    return response.Response({"success": str(e)}, status=status.HTTP_200_OK)
-
-
 def response_bad_request(e):
     return response.Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def response_unauthorized_access():
-    return response.Response({"error": "Unauthorized access"}, status=status.HTTP_401_UNAUTHORIZED)
+    return response.Response(
+        {"error": "Unauthorized access"}, status=status.HTTP_401_UNAUTHORIZED
+    )
 
 
 class CreatePostView(views.APIView):
@@ -32,7 +30,9 @@ class CreatePostView(views.APIView):
             serialized = serializers.PostSerializer(data=request.data)
 
             if not serialized.is_valid():
-                return response.Response({"error": serialized.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response(
+                    {"error": serialized.errors}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             serialized.save(uploader=request.user)
 
@@ -71,26 +71,11 @@ class CreatePostView(views.APIView):
             record.posts.add(post)
             record.save()
 
-            serialized_post = serializers.PostSerializer(post)
-
             request.user.posts += 1
             request.user.save()
 
             return response.Response(
                 {
-                    "content": {
-                        **serialized_post.data,
-                        "self": True,
-                        "user_reaction": (
-                            models.PostReaction.objects.get(
-                                post=post, user=request.user
-                            ).reaction
-                            if models.PostReaction.objects.filter(
-                                post=post, user=request.user
-                            ).exists()
-                            else None
-                        ),
-                    },
                     "posts": request.user.posts,
                 },
                 status=status.HTTP_201_CREATED,
@@ -119,13 +104,16 @@ class EditPostView(views.APIView):
             )
 
             if not serialized_post.is_valid():
-                return response.Response({"error": serialized_post.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return response.Response(
+                    {"error": serialized_post.errors},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             serialized_post.save()
 
             if (
-                    request.data["visibility"] in POST_VISIBILITY_TYPE
-                    and request.data["visibility"] == "public"
+                request.data["visibility"] in POST_VISIBILITY_TYPE
+                and request.data["visibility"] == "public"
             ):
                 post.isPublic = True
                 post.isProtected = False
@@ -134,8 +122,8 @@ class EditPostView(views.APIView):
                 post.isPrivate = False
 
             elif (
-                    request.data["visibility"] in POST_VISIBILITY_TYPE
-                    and request.data["visibility"] == "protected"
+                request.data["visibility"] in POST_VISIBILITY_TYPE
+                and request.data["visibility"] == "protected"
             ):
                 post.isProtected = True
                 post.isPublic = False
@@ -144,8 +132,8 @@ class EditPostView(views.APIView):
                 post.isPrivate = False
 
             elif (
-                    request.data["visibility"] in POST_VISIBILITY_TYPE
-                    and request.data["visibility"] == "private"
+                request.data["visibility"] in POST_VISIBILITY_TYPE
+                and request.data["visibility"] == "private"
             ):
                 post.isPrivate = True
                 post.isPublic = False
@@ -157,19 +145,22 @@ class EditPostView(views.APIView):
 
             serialized_post = serializers.PostSerializer(post)
 
-            return response.Response({
-                **serialized_post.data,
-                "self": True,
-                "user_reaction": (
-                    models.PostReaction.objects.get(
-                        post=post, user=request.user
-                    ).reaction
-                    if models.PostReaction.objects.filter(
-                        post=post, user=request.user
-                    ).exists()
-                    else None
-                ),
-            }, status=status.HTTP_201_CREATED)
+            return response.Response(
+                {
+                    **serialized_post.data,
+                    "self": True,
+                    "user_reaction": (
+                        models.PostReaction.objects.get(
+                            post=post, user=request.user
+                        ).reaction
+                        if models.PostReaction.objects.filter(
+                            post=post, user=request.user
+                        ).exists()
+                        else None
+                    ),
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
         except Exception as e:
             return response_bad_request(e)
@@ -219,9 +210,9 @@ class ViewUserAllPostsView(views.APIView):
                 return response.Response({}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
             if (
-                    user.isLocked
-                    and request.user not in user.connections.all()
-                    and request.user != user
+                user.isLocked
+                and request.user not in user.connections.all()
+                and request.user != user
             ):
                 return response.Response([], status=status.HTTP_204_NO_CONTENT)
 
@@ -242,10 +233,7 @@ class ViewUserAllPostsView(views.APIView):
                     postsList.append(post)
 
                 elif post.isProtected:
-                    if (
-                            request.user in user.connections.all()
-                            or request.user == user
-                    ):
+                    if request.user in user.connections.all() or request.user == user:
                         postsList.append(post)
 
                 elif post.isHidden:
@@ -316,14 +304,16 @@ class CreateCommentView(views.APIView):
                 return response_bad_request("No such post is there")
 
             if not post.allowComments:
-                return response.Response({"error": "Comments are not allowed on this post."},
-                                         status=status.HTTP_406_NOT_ACCEPTABLE)
+                return response.Response(
+                    {"error": "Comments are not allowed on this post."},
+                    status=status.HTTP_406_NOT_ACCEPTABLE,
+                )
 
             comment_id = f"{postid}+{uuid.uuid4()}"
             master = (
                 models.Comment.objects.get(id=request.data["master"])
                 if "master" in request.data
-                   and models.Comment.objects.filter(id=request.data["master"]).exists()
+                and models.Comment.objects.filter(id=request.data["master"]).exists()
                 else None
             )
 
@@ -340,7 +330,9 @@ class CreateCommentView(views.APIView):
             post.save()
 
             if master is None:
-                commentRecord, created = models.CommentRecord.objects.get_or_create(post=post)
+                commentRecord, created = models.CommentRecord.objects.get_or_create(
+                    post=post
+                )
                 commentRecord.comments.add(comment)
                 commentRecord.save()
 
@@ -478,7 +470,7 @@ class AddPostReactionView(views.APIView):
                 return response_bad_request("No such post is there")
 
             if models.PostReaction.objects.filter(
-                    post=post, user=request.user
+                post=post, user=request.user
             ).exists():
                 reaction_record = models.PostReaction.objects.get(
                     post=post, user=request.user
@@ -511,7 +503,7 @@ class AddPostReactionView(views.APIView):
                 return response_bad_request("No such post is there")
 
             if models.PostReaction.objects.filter(
-                    post=post, user=request.user
+                post=post, user=request.user
             ).exists():
                 post_reaction = models.PostReaction.objects.get(
                     post=post, user=request.user

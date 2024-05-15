@@ -2,17 +2,32 @@ from rest_framework import serializers
 from . import models
 from authentication import serializers as auth_serializers
 
+
 class PostSerializer(serializers.ModelSerializer):
     id = serializers.StringRelatedField(read_only=True)
-    tags = serializers.ListField(child=serializers.CharField())
-    media = serializers.ListField(child=serializers.CharField())
     createdAt = serializers.CharField(required=False)
     uploader = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Post
-        fields = ['id', 'caption', 'tags', 'media', 'uploader', 'createdAt', 'isPublic', 'isProtected', 'isPersonal',
-                  'isHidden', 'isPrivate', 'likeNo', 'viewsNo', 'share', 'allowComments', 'commentNo']
+        fields = [
+            "id",
+            "caption",
+            "tags",
+            "media",
+            "uploader",
+            "createdAt",
+            "isPublic",
+            "isProtected",
+            "isPersonal",
+            "isHidden",
+            "isPrivate",
+            "likeNo",
+            "viewsNo",
+            "share",
+            "allowComments",
+            "commentNo",
+        ]
 
     def get_uploader(self, obj):
         return auth_serializers.UserPeekSerializer(obj.uploader).data
@@ -28,7 +43,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Comment
-        exclude = ['post', 'timestamp']
+        exclude = ["post", "timestamp"]
 
     def get_uploader(self, obj):
         return auth_serializers.UserPeekSerializer(obj.uploader).data
