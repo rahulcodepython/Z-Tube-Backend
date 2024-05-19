@@ -191,14 +191,13 @@ class OtherUserView(views.APIView):
             if not User.objects.filter(username=username).exists():
                 return response_bad_request("No such user found.")
 
+            user = User.objects.get(username=username)
+
             return response.Response(
                 {
-                    **serializers.UserSerializer(
-                        User.objects.get(username=username)
-                    ).data,
+                    **serializers.UserSerializer(user).data,
                     "self": False,
-                    "isFriend": request.user
-                    in User.objects.get(username=username).connections.objects.all(),
+                    "isFriend": request.user in user.connections.all(),
                 },
                 status=status.HTTP_200_OK,
             )
