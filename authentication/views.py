@@ -680,3 +680,22 @@ class ConnectView(views.APIView):
 
         except Exception as e:
             return response_bad_request(e)
+
+
+class RequestMarchentAccountView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            if request.user.isMarchant:
+                return response.Response(
+                    {"error": "You are already a marchant."},
+                    status=status.HTTP_406_NOT_ACCEPTABLE,
+                )
+
+            request.user.isMarchant = True
+            request.user.save()
+            return response.Response({}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response_bad_request(e)

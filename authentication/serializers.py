@@ -24,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
             "isVerified",
             "isLocked",
             "is_superuser",
+            "isMarchant",
         ]
 
 

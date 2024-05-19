@@ -11,7 +11,7 @@ urlpatterns = [
     path("users/resend_activation/", views.ResendActivateUserView.as_view()),
     path("users/jwt/create/", views.CreateJWTView.as_view()),
     path("users/jwt/refresh/", TokenRefreshView.as_view()),
-    path('users/jwt/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path("users/jwt/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("users/set_password/", views.ResetUserPasswordView.as_view()),
     path("users/set_email/", views.ResetUserEmailView.as_view()),
     path(
@@ -37,4 +37,5 @@ urlpatterns = [
     # Others Actions
     path("find/username/", views.FindUsernameView.as_view()),
     path("connect/<str:username>/", views.ConnectView.as_view()),
+    path("request-marchent-account/", views.RequestMarchentAccountView.as_view()),
 ]
