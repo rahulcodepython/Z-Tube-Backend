@@ -58,3 +58,29 @@ class GetAllMyProductsView(views.APIView):
 
         except Exception as e:
             return response_bad_request(str(e))
+
+
+class EditProductView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, id):
+        try:
+            product = (
+                models.Product.objects.get(id=id)
+                if models.Product.objects.filter(id=id)
+                else None
+            )
+
+            if not product:
+                return response_bad_request("Product not found.")
+
+            if product.uploader != request.user:
+                return response_bad_request(
+                    "You are not allowed to delete this product."
+                )
+
+            product.delete()
+            return response.Response({}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return response_bad_request(str(e))
