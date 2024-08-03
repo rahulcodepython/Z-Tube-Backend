@@ -1,11 +1,15 @@
 /venv
+/.vscode
+./.venv
 .env
 /media
 .idea
 /static
-/authentication/migrations/__pycache__
+/authentication/migrations/*
 /authentication/__pycache__
-/feed/migrations/__pycache__
+/feed/migrations/*
 /feed/__pycache__
+/ecommerce/migrations/*
+/ecommerce/__pycache__
 db.sqlite3
 /data

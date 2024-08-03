@@ -1,4 +1,3 @@
-from django.core.management.utils import get_random_secret_key
 from datetime import timedelta
 from dotenv import load_dotenv
 from pathlib import Path
@@ -12,15 +11,15 @@ BASE_APP_URL = os.environ.get("BASE_APP_URL")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_random_secret_key()
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.environ.get("DEBUG") == "True" else False
 
-ALLOWED_HOSTS = ["192.168.29.122", "*"]
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -30,10 +29,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Apps
+    # Custom Apps
     "authentication",
-    "feed",
     "ecommerce",
+    "feed",
     # Packages
     "rest_framework",
     "rest_framework_simplejwt",
@@ -45,8 +44,8 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -114,24 +113,14 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = "/static/"
+STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "static"
-MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_URL = "media/"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Corsheaders
-if DEBUG == True:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOWED_ORIGINS = [
-        os.environ.get("BASE_APP_URL"),
-    ]
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Rest Framework Settings
 REST_FRAMEWORK = {
@@ -143,7 +132,7 @@ REST_FRAMEWORK = {
 # JWT Settings
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "AUTH_HEADER_TYPES": ("JWT",),
     "USER_ID_FIELD": "id",
@@ -177,6 +166,3 @@ GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
-
-SESSION_COOKIE_SECURE = True if os.environ.get("DEBUG") == "False" else False
-SECURE_SSL_REDIRECT = True if os.environ.get("DEBUG") == "False" else False

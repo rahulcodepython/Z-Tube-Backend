@@ -18,11 +18,6 @@ def create_token() -> int:
     return random.randint(1000, 9999)
 
 
-class TestIndex(views.APIView):
-    def get(self, request):
-        return response.Response({"msg": "Ok! Running..."})
-
-
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
