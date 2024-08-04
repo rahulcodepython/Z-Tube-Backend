@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+    server:
+        build: ./Backend
+        command: python manage.py runserver 0.0.0.0:8000
+        container_name: z-tube-backend
+        ports:
+            - "8000:8000"
+        depends_on:
+            - db
+
+    web:
+        build: ./Frontend
+        command: npm run start
+        container_name: z-tube-frontend
+        ports:
+            - "3000:3000"
+
+    db:
+        image: postgres
+        restart: always
+        volumes:
+            - ./data/db:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+
+        environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=rahul
+            - POSTGRES_PASSWORD=admin
+
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - 8080:8080
